@@ -33,30 +33,30 @@
 <div class="card">
     <div class="overflow-x-auto">
         <table>
-            <thead><tr><th>Waktu</th><th>Pelaku</th><th>Modul</th><th>Aksi</th><th>Deskripsi</th></tr></thead>
+            <thead><tr><th>Modul</th><th>Aksi</th><th>Dilakukan Oleh</th><th>IP Address</th><th>Timestamp</th></tr></thead>
             <tbody>
                 @forelse($logs as $log)
                 <tr>
-                    <td style="white-space:nowrap;font-size:.8rem">{{ $log->time_stamp?->format('d/m/Y H:i:s') }}</td>
-                    <td style="font-size:.82rem">{{ $log->dilakukan_oleh }}</td>
                     <td>
                         @php
                             $modBadge = match($log->modul) {
-                                'User' => 'background:#eef2ff;color:#4f46e5',
-                                'Alat' => 'background:#ecfdf5;color:#059669',
-                                'Barang' => 'background:#fffbeb;color:#d97706',
-                                'Peminjaman' => 'background:#f3e8ff;color:#6b21a8',
-                                'Mutasi' => 'background:#fce7f3;color:#be185d',
-                                default => 'background:#f1f5f9;color:#475569',
+                                'User' => 'badge-blue',
+                                'Alat' => 'badge-green',
+                                'Barang' => 'badge-yellow',
+                                'Peminjaman' => 'badge-purple',
+                                'Mutasi' => 'badge-red',
+                                default => 'badge-gray',
                             };
                         @endphp
-                        <span class="badge" style="{{ $modBadge }}">{{ $log->modul }}</span>
+                        <span class="badge {{ $modBadge }}">{{ $log->modul }}</span>
                     </td>
-                    <td>{{ $log->aksi }}</td>
-                    <td style="max-width:300px;white-space:normal;font-size:.82rem">{{ $log->deskripsi }}</td>
+                    <td><span style="font-weight:500;color:#1A1A2E">{{ $log->aksi }}</span></td>
+                    <td>{{ $log->dilakukan_oleh }}</td>
+                    <td><code style="font-size:12px;background:#F3F4F6;padding:2px 8px;border-radius:4px;color:#6B7280">{{ $log->ip_address }}</code></td>
+                    <td style="white-space:nowrap;font-size:12px;color:#6B7280">{{ $log->time_stamp?->format('d/m/Y H:i:s') }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="5" style="text-align:center;padding:2rem;color:#64748b">Tidak ada log aktivitas.</td></tr>
+                <tr><td colspan="5" class="empty-state">Tidak ada log aktivitas.</td></tr>
                 @endforelse
             </tbody>
         </table>

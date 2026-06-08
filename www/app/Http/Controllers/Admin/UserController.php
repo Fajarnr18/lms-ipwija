@@ -13,7 +13,7 @@ class UserController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = User::where('role', 'mahasiswa');
+        $query = User::whereIn('role', ['mahasiswa', 'dosen']);
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {

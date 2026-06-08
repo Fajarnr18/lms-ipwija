@@ -2,7 +2,7 @@
 @section('title', 'Riwayat Peminjaman Saya')
 
 @section('content')
-<form method="GET" action="{{ route('mhs.borrowings.index') }}">
+<form method="GET" action="{{ route('dosen.borrowings.index') }}">
     <div class="toolbar">
         <div class="toolbar-item">
             <label>Status</label>
@@ -28,7 +28,7 @@
                     <td>{{ $b->tgl_rencana_pinjam?->format('d/m/Y') }}</td>
                     <td>{{ $b->tgl_rencana_kembali?->format('d/m/Y') }}</td>
                     <td><span class="badge @php echo match($b->status) { 'Menunggu'=>'badge-yellow','Disetujui'=>'badge-blue','Ditolak'=>'badge-red','Dipinjam'=>'badge-purple','Dikembalikan'=>'badge-green',default=>'badge-gray' } @endphp">{{ $b->status }}</span></td>
-                    <td><div class="action-group"><a href="{{ route('mhs.borrowings.show', $b->id_borrowing) }}" class="btn btn-sm btn-outline">Detail</a></div></td>
+                    <td><div class="action-group"><a href="{{ route('dosen.borrowings.show', $b->id_borrowing) }}" class="btn btn-sm btn-outline">Detail</a></div></td>
                 </tr>
                 @empty
                 <tr><td colspan="6"><div class="empty-state">Belum ada peminjaman.</div></td></tr>

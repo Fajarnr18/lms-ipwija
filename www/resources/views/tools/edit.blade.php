@@ -1,14 +1,19 @@
 @extends('layouts.app')
 @section('title', 'Edit Alat')
+@section('subtitle', 'Ubah data alat laboratorium')
+@section('header-actions')
+    <a href="{{ route('admin.tools.index') }}" class="btn btn-outline btn-sm">&larr; Kembali</a>
+@endsection
 
 @section('content')
-<a href="{{ route('admin.tools.index') }}" class="btn btn-outline btn-sm mb-3">&larr; Kembali</a>
-
 @if ($errors->any())
-<div class="alert alert-danger">
-    @foreach ($errors->all() as $error)
-    <p style="margin:.125rem 0">{{ $error }}</p>
-    @endforeach
+<div class="alert alert-error">
+    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <div style="flex:1">
+        @foreach ($errors->all() as $error)
+        <p style="margin:.125rem 0">{{ $error }}</p>
+        @endforeach
+    </div>
 </div>
 @endif
 

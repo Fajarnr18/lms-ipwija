@@ -1,186 +1,201 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Masuk - {{ config('app.name') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800" rel="stylesheet" />
+    @vite('resources/css/app.css')
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Inter',sans-serif;min-height:100vh;display:flex;background:#f8fafc}
-        .split{display:flex;width:100%;min-height:100vh}
-        .brand-side{display:none;width:50%;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);position:relative;overflow:hidden;align-items:center;justify-content:center;padding:3rem}
-        @media(min-width:1024px){.brand-side{display:flex}}
-        .brand-side::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.15),transparent 70%);top:-100px;right:-100px}
-        .brand-side::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.1),transparent 70%);bottom:-80px;left:-80px}
-        .brand-content{position:relative;z-index:1;text-align:center;color:#fff;max-width:420px}
-        .brand-icon{width:72px;height:72px;background:linear-gradient(135deg,#6366f1,#a855f7);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;box-shadow:0 8px 32px rgba(99,102,241,.35)}
-        .brand-content h1{font-size:2rem;font-weight:700;margin-bottom:.5rem;letter-spacing:-.02em}
-        .brand-content p{color:rgba(255,255,255,.6);line-height:1.6;font-size:.95rem;margin-bottom:2rem}
-        .feature-list{text-align:left;display:flex;flex-direction:column;gap:.75rem}
-        .feature-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:rgba(255,255,255,.05);border-radius:10px;border:1px solid rgba(255,255,255,.08);font-size:.875rem;color:rgba(255,255,255,.8)}
-        .feature-item span{width:28px;height:28px;border-radius:8px;background:rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
-        .form-side{width:100%;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
-        @media(min-width:1024px){.form-side{width:50%}}
-        .form-container{width:100%;max-width:400px}
-        .form-header{margin-bottom:2rem}
-        .form-header h2{font-size:1.625rem;font-weight:700;color:#0f172a;letter-spacing:-.03em;margin-bottom:.375rem}
-        .form-header p{color:#64748b;font-size:.9rem}
-        .role-switch{display:flex;background:#f1f5f9;border-radius:10px;padding:3px;margin-bottom:1.75rem;gap:3px}
-        .role-btn{flex:1;padding:.6rem 1rem;border:none;border-radius:8px;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .25s;background:transparent;color:#64748b;font-family:'Inter',sans-serif;position:relative}
-        .role-btn.active{background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.08);font-weight:600}
-        .role-btn:not(.active):hover{color:#334155}
-        .input-group{position:relative;margin-bottom:1rem}
-        .input-group label{display:block;font-size:.8rem;font-weight:500;color:#334155;margin-bottom:.375rem;letter-spacing:.01em}
-        .input-group .input-wrap{position:relative}
-        .input-group .input-wrap .icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:1rem;pointer-events:none;line-height:1}
-        .input-group input{width:100%;padding:.65rem .85rem .65rem 2.4rem;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.875rem;font-family:'Inter',sans-serif;background:#fff;color:#0f172a;outline:none;transition:all .2s}
-        .input-group input:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
-        .input-group input::placeholder{color:#94a3b8}
-        .input-group .toggle-pw{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94a3b8;cursor:pointer;font-size:.9rem;padding:4px}
-        .forgot-row{display:flex;justify-content:flex-end;margin-bottom:1.25rem}
-        .forgot-row a{font-size:.8rem;color:#6366f1;text-decoration:none;font-weight:500;transition:color .2s}
-        .forgot-row a:hover{color:#4f46e5}
-        .btn-login{width:100%;padding:.75rem;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .25s;font-family:'Inter',sans-serif;position:relative;overflow:hidden}
-        .btn-login:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(99,102,241,.35)}
-        .btn-login:active{transform:translateY(0)}
-        .btn-login.loading{pointer-events:none}
-        .btn-login .spinner{display:none;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;position:absolute;left:50%;top:50%;margin:-9px 0 0 -9px}
-        .btn-login.loading .spinner{display:block}
-        .btn-login.loading .btn-text{opacity:0}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .checkbox-row{display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
-        .checkbox-row input[type=checkbox]{width:16px;height:16px;accent-color:#6366f1;cursor:pointer;margin:0}
-        .checkbox-row label{font-size:.82rem;color:#475569;cursor:pointer;user-select:none}
-        .divider{display:flex;align-items:center;gap:1rem;margin:1.5rem 0;color:#94a3b8;font-size:.8rem}
-        .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e2e8f0}
-        .register-link{text-align:center;font-size:.875rem;color:#64748b}
-        .register-link a{color:#6366f1;text-decoration:none;font-weight:600;transition:color .2s}
-        .register-link a:hover{color:#4f46e5}
-        .alert{padding:.75rem 1rem;border-radius:10px;margin-bottom:1.25rem;font-size:.85rem;display:flex;align-items:center;gap:.5rem;line-height:1.4}
-        .alert-error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
-        .alert-error::before{content:'⚠️';font-size:.9rem}
-        .creds-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.75rem 1rem;font-size:.8rem;color:#64748b;line-height:1.6;margin-top:1.25rem}
-        .creds-box strong{color:#0f172a}
-        .creds-box code{background:#e2e8f0;padding:1px 6px;border-radius:4px;font-size:.75rem;font-family:'Inter',monospace}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; background: #F0F2F8; }
+        .split { display: flex; width: 100%; min-height: 100vh; }
+        .brand-side { display: none; width: 50%; background: #0D1F3C; position: relative; overflow: hidden; align-items: flex-start; justify-content: flex-start; padding: 48px; padding-top: 60px; }
+        @media(min-width:1024px){ .brand-side { display: flex; } }
+        .brand-side::before { content: ''; position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(30,79,216,.12), transparent 70%); top: -100px; right: -100px; }
+        .brand-side::after { content: ''; position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(30,79,216,.08), transparent 70%); bottom: -80px; left: -80px; }
+        .brand-content { position: relative; z-index: 1; text-align: center; color: #fff; max-width: 420px; margin: 0 auto; }
+        .brand-icon { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+        .brand-icon img { width: 100%; height: 100%; object-fit: contain; }
+        .brand-content h1 { font-size: 28px; font-weight: 800; margin-bottom: 4px; letter-spacing: -.02em; }
+        .brand-content .tagline { color: rgba(255,255,255,.5); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 24px; }
+        .brand-content p { color: rgba(255,255,255,.55); line-height: 1.6; font-size: 14px; margin-bottom: 0; }
+        .brand-side .copyright { position: absolute; bottom: 24px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.2); font-size: 11px; }
+
+        .form-side { width: 100%; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px; background: #F0F2F8; }
+        @media(min-width:1024px){ .form-side { width: 50%; } }
+        .form-container { width: 100%; max-width: 400px; }
+        .mobile-brand { display: block; text-align: center; margin-bottom: 32px; }
+        @media(min-width:1024px){ .mobile-brand { display: none; } }
+        .mobile-brand .logo { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+        .mobile-brand .logo img { width: 100%; height: 100%; object-fit: contain; }
+        .mobile-brand h1 { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+        .mobile-brand .tagline { font-size: 11px; color: #6B7280; }
+
+        .form-card { background: #fff; border-radius: 16px; padding: 32px; border: 1px solid #E5E7EB; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+        .form-header { margin-bottom: 24px; }
+        .form-header h2 { font-size: 22px; font-weight: 700; color: #1A1A2E; letter-spacing: -.03em; margin-bottom: 4px; }
+        .form-header p { font-size: 13px; color: #6B7280; }
+
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+        .input-group .input-wrap { position: relative; border: 1.5px solid #E5E7EB; border-radius: 10px; background: #fff; }
+        .input-group .input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #9CA3AF; }
+        .input-group input { width: 100%; padding: 10px 12px 10px 40px; border: none; border-radius: 0; font-size: 13px; font-family: 'Inter', sans-serif; background: transparent; color: #1A1A2E; outline: none; transition: all .2s; }
+        .input-group .input-wrap:focus-within { border-color: #1E4FD8; box-shadow: 0 0 0 3px rgba(30,79,216,.1); }
+        .input-group input:focus { outline: none; }
+        .input-group input::placeholder { color: #9CA3AF; }
+        .input-group .toggle-pw { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9CA3AF; cursor: pointer; padding: 2px; display: flex; align-items: center; justify-content: center; }
+        .input-group .input-wrap .pw-input { padding-right: 48px; }
+
+        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .checkbox-row input[type=checkbox] { width: 16px; height: 16px; accent-color: #1E4FD8; cursor: pointer; margin: 0; }
+        .checkbox-row label { font-size: 13px; color: #4B5563; cursor: pointer; }
+
+        .forgot-row { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+        .forgot-row a { font-size: 12px; color: #1E4FD8; text-decoration: none; font-weight: 500; }
+        .forgot-row a:hover { text-decoration: underline; }
+
+        .btn-login { width: 100%; padding: 10px; background: #1E4FD8; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-login:hover { background: #1A45C2; }
+        .btn-login.loading { pointer-events: none; opacity: .7; }
+        .btn-login .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+        .btn-login.loading .spinner { display: block; }
+        .btn-login .btn-icon { flex-shrink: 0; }
+        .btn-login.loading .btn-icon { display: none; }
+        .btn-login.loading .btn-text { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .divider { display: flex; align-items: center; gap: 16px; margin: 24px 0; color: #9CA3AF; font-size: 12px; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #E5E7EB; }
+
+        .register-link { text-align: center; font-size: 13px; color: #6B7280; }
+        .register-link a { color: #1E4FD8; text-decoration: none; font-weight: 600; }
+        .register-link a:hover { text-decoration: underline; }
+
+        .alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: center; gap: 8px; line-height: 1.4; }
+        .alert-success { background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; }
+        .alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+
+        .creds-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px 16px; font-size: 12px; color: #6B7280; line-height: 1.6; margin-top: 20px; }
+        .creds-box strong { color: #1A1A2E; }
+        .creds-box code { background: #E5E7EB; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-family: 'Inter', monospace; }
+
+        .error-text { font-size: 12px; color: #EF4444; margin-top: 4px; }
     </style>
 </head>
 <body>
     <div class="split">
         <div class="brand-side">
             <div class="brand-content">
-                <div class="brand-icon">🔬</div>
-                <h1>LabTool Management</h1>
-                <p>Sistem manajemen peminjaman alat dan barang laboratorium yang terintegrasi untuk kemudahan administrasi.</p>
-                <div class="feature-list">
-                    <div class="feature-item"><span>📋</span> Ajukan peminjaman alat laboratorium dengan mudah</div>
-                    <div class="feature-item"><span>✅</span> Kelola persetujuan dan pengembalian dalam satu平台</div>
-                    <div class="feature-item"><span>📊</span> Pantau stok alat dan barang secara real-time</div>
-                    <div class="feature-item"><span>📜</span> Audit trail otomatis untuk setiap transaksi</div>
-                </div>
+                <div class="brand-icon"><img src="/logo.png" alt="Logo"></div>
+                <h1>LMS Universitas IPWIJA</h1>
+                <div class="tagline">Laboratorium Berbasis Digital</div>
+                <p>Optimalkan riset dan praktikum Anda dengan sistem manajemen laboratorium terintegrasi.</p>
             </div>
+            <div class="copyright">&copy; {{ date('Y') }} LMS Universitas IPWIJA. All rights reserved.</div>
         </div>
 
         <div class="form-side">
             <div class="form-container">
-                <div class="form-header">
-                    <h2>Selamat Datang</h2>
-                    <p>Masuk ke akun Anda untuk melanjutkan</p>
+                <div class="mobile-brand">
+                    <div class="logo"><img src="/logo.png" alt="Logo"></div>
+                    <h1>LMS Universitas IPWIJA</h1>
+                    <div class="tagline">Laboratorium Berbasis Digital</div>
                 </div>
 
-                <div class="role-switch" id="roleSwitch">
-                    <button class="role-btn active" data-role="admin" onclick="switchRole('admin')">👤 Admin</button>
-                    <button class="role-btn" data-role="mahasiswa" onclick="switchRole('mahasiswa')">🎓 Mahasiswa</button>
-                </div>
+                <div class="form-card">
+                    <div class="form-header">
+                        <h2>Selamat Datang</h2>
+                        <p>Masuk ke akun Anda untuk melanjutkan</p>
+                    </div>
 
-                @if(session('success'))
-                    <div class="alert alert-success" style="background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:.75rem 1rem;border-radius:10px;margin-bottom:1.25rem;font-size:.85rem">✅ {{ session('success') }}</div>
-                @endif
+                    @if(session('success'))
+                    <div class="alert alert-success">
+                        <span>&#10003;</span> {{ session('success') }}
+                    </div>
+                    @endif
 
-                @if ($errors->any())
+                    @if ($errors->any())
                     <div class="alert alert-error">
-                        @foreach ($errors->all() as $error)
-                            {{ $error }}
-                        @endforeach
-                    </div>
-                @endif
-
-                <form method="POST" action="{{ route('login') }}" onsubmit="document.querySelector('.btn-login').classList.add('loading')">
-                    @csrf
-                    <input type="hidden" name="role_hint" id="roleHint" value="admin">
-
-                    <div class="input-group">
-                        <label for="email">Email atau NIM</label>
-                        <div class="input-wrap">
-                            <span class="icon">📧</span>
-                            <input id="email" type="text" name="email" value="{{ old('email') }}" required autofocus placeholder="admin@lab.com atau NIM">
+                        <span>&#9888;</span>
+                        <div>
+                            @foreach ($errors->all() as $error)
+                            {{ $error }}@if(!$loop->last)<br>@endif
+                            @endforeach
                         </div>
                     </div>
+                    @endif
 
-                    <div class="input-group">
-                        <label for="password">Password</label>
-                        <div class="input-wrap">
-                            <span class="icon">🔒</span>
-                            <input id="password" type="password" name="password" required placeholder="Masukkan password">
-                            <button type="button" class="toggle-pw" onclick="togglePassword()" id="toggleBtn">👁</button>
+                    <form method="POST" action="{{ route('login') }}" onsubmit="document.querySelector('.btn-login').classList.add('loading')">
+                        @csrf
+
+                        <div class="input-group">
+                            <label for="email">Email / NUPTK / NIM</label>
+                            <div class="input-wrap">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <input id="email" type="text" name="email" value="{{ old('email') }}" required autofocus placeholder="admin@test.com / 16 digit NUPTK / 12 digit NIM">
+                            </div>
                         </div>
+
+                        <div class="input-group">
+                            <label for="password">Kata Sandi</label>
+                            <div class="input-wrap">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <input id="password" type="password" name="password" required placeholder="Masukkan kata sandi" class="pw-input">
+                                <button type="button" class="toggle-pw" onclick="togglePassword()" id="toggleBtn">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+                            <label class="checkbox-row" style="margin-bottom:0">
+                                <input type="checkbox" name="remember" id="remember">
+                                <label for="remember" style="font-size:13px;color:#4B5563;cursor:pointer">Ingat saya</label>
+                            </label>
+                            <div class="forgot-row" style="margin-bottom:0">
+                                <a href="#">Lupa password?</a>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-login"><svg class="btn-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                            <span class="spinner"></span>
+                            <span class="btn-text">Masuk</span>
+                        </button>
+                    </form>
+
+                    <div class="divider">atau</div>
+
+                    <div class="register-link">
+                        Belum memiliki akun? <a href="{{ route('register') }}">Daftar Sekarang</a>
                     </div>
 
-                    <div class="checkbox-row">
-                        <input type="checkbox" name="remember" id="remember">
-                        <label for="remember">Ingat Saya</label>
+                    <div class="creds-box">
+                        <strong>Test Credentials</strong><br>
+                        Admin: <code>admin@test.com</code> / <code>password</code><br>
+                        Dosen: <code>1234567890123456</code> / <code>password</code><br>
+                        Mahasiswa: <code>123456789012</code> / <code>password</code>
                     </div>
-
-                    <div class="forgot-row">
-                        <a href="#">Lupa password?</a>
-                    </div>
-
-                    <button type="submit" class="btn-login">
-                        <span class="spinner"></span>
-                        <span class="btn-text">Masuk</span>
-                    </button>
-                </form>
-
-                <div class="divider">atau</div>
-
-                <div class="register-link">
-                    Belum punya akun? <a href="{{ route('register') }}">Daftar di sini</a>
-                </div>
-
-                <div class="creds-box" id="credsBox">
-                    <strong>🔑 Test Credentials</strong><br>
-                    <span id="credsText">Admin: <code>admin@test.com</code> / <code>password</code></span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        function switchRole(role) {
-            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.role-btn[data-role="${role}"]`).classList.add('active');
-            document.getElementById('roleHint').value = role;
 
-            const creds = document.getElementById('credsText');
-            if (role === 'admin') {
-                creds.innerHTML = 'Admin: <code>admin@test.com</code> / <code>password</code>';
-            } else {
-                creds.innerHTML = 'Mahasiswa: <code>mhs@test.com</code> / <code>password</code>';
-            }
+    function togglePassword() {
+        var pw = document.getElementById('password');
+        var btn = document.getElementById('toggleBtn');
+        if (pw.type === 'password') {
+            pw.type = 'text';
+            btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-2.887m2.184-2.158A9.96 9.96 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.066 10.066 0 01-2.162 3.253"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"/></svg>';
+        } else {
+            pw.type = 'password';
+            btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
         }
-
-        function togglePassword() {
-            const pw = document.getElementById('password');
-            const btn = document.getElementById('toggleBtn');
-            if (pw.type === 'password') {
-                pw.type = 'text';
-                btn.textContent = '🙈';
-            } else {
-                pw.type = 'password';
-                btn.textContent = '👁';
-            }
-        }
+    }
     </script>
 </body>
 </html>

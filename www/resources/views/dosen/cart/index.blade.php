@@ -7,10 +7,10 @@
 
     @if(count($cart) === 0)
     <div class="empty-state">
-        Keranjang kosong. <a href="{{ route('mhs.catalog.index') }}" style="color:#1E4FD8;text-decoration:none;font-weight:500">Jelajahi katalog</a>
+        Keranjang kosong. <a href="{{ route('dosen.catalog.index') }}" style="color:#1E4FD8;text-decoration:none;font-weight:500">Jelajahi katalog</a>
     </div>
     @else
-    <form method="POST" action="{{ route('mhs.cart.submit') }}">
+    <form method="POST" action="{{ route('dosen.cart.submit') }}">
         @csrf
         <div style="overflow-x:auto">
             <table>
@@ -20,7 +20,7 @@
                     <tr>
                         <td>{{ $item['nama_alat'] }} ({{ $item['kode_alat'] }})</td>
                         <td><input type="number" name="kuantitas[{{ $id }}]" value="{{ $item['jumlah_unit'] }}" min="1" max="{{ $item['stok_tersedia'] }}" style="width:60px;padding:6px 8px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif"></td>
-                        <td><div class="action-group"><a href="{{ route('mhs.cart.remove', $id) }}" class="btn btn-sm btn-danger">Hapus</a></div></td>
+                        <td><div class="action-group"><a href="{{ route('dosen.cart.remove', $id) }}" class="btn btn-sm btn-danger">Hapus</a></div></td>
                     </tr>
                     @endforeach
                 </tbody>

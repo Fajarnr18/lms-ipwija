@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Dashboard Mahasiswa')
+@section('title', 'Dashboard Dosen')
 
 @section('content')
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-bottom:24px">
@@ -40,7 +40,7 @@
                     <td>{{ $b->id_borrowing }}</td>
                     <td>{{ $b->tgl_pengajuan?->format('d/m/Y') }}</td>
                     <td><span class="badge @php echo match($b->status) { 'Menunggu'=>'badge-yellow','Disetujui'=>'badge-blue','Ditolak'=>'badge-red','Dipinjam'=>'badge-purple','Dikembalikan'=>'badge-green',default=>'badge-gray' } @endphp">{{ $b->status }}</span></td>
-                    <td><div class="action-group"><a href="{{ route('mhs.borrowings.show', $b->id_borrowing) }}" class="btn btn-sm btn-outline">Detail</a></div></td>
+                    <td><div class="action-group"><a href="{{ route('dosen.borrowings.show', $b->id_borrowing) }}" class="btn btn-sm btn-outline">Detail</a></div></td>
                 </tr>
                 @empty
                 <tr><td colspan="4"><div class="empty-state">Belum ada peminjaman.</div></td></tr>

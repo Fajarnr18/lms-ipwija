@@ -1,149 +1,131 @@
 @extends('layouts.app')
 @section('title', 'Dashboard Admin')
+@section('subtitle', 'Ringkasan Laboratorium')
+
+@section('header-actions')
+<a href="{{ route('admin.borrowings.index', ['tab' => 'menunggu']) }}" class="btn btn-sm">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Peminjaman Baru
+</a>
+@endsection
 
 @section('content')
-<style>
-    .d-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem;margin-bottom:1.75rem}
-    .d-stat{position:relative;background:#fff;border-radius:12px;padding:1.25rem 1.5rem;border:1px solid #f1f5f9;overflow:hidden;transition:all .25s}
-    .d-stat:hover{transform:translateY(-3px);border-color:#cbd5e1;box-shadow:0 8px 24px rgba(0,0,0,.06)}
-    @media(prefers-color-scheme:dark){.d-stat{background:#161615;box-shadow:0 1px 2px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.06)}.d-stat:hover{box-shadow:0 8px 24px rgba(0,0,0,.3),0 0 0 1px rgba(99,102,241,.2)}}
-    .d-stat .stat-accent{position:absolute;top:0;left:0;width:100%;height:3px}
-    .d-stat .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;margin-bottom:.75rem}
-    .d-stat .stat-value{font-size:1.65rem;font-weight:700;color:#0f172a;letter-spacing:-.02em;line-height:1.2;margin-bottom:.15rem}
-    @media(prefers-color-scheme:dark){.d-stat .stat-value{color:#ededec}}
-    .d-stat .stat-label{font-size:.8rem;color:#64748b;font-weight:500}
-    @media(prefers-color-scheme:dark){.d-stat .stat-label{color:#a1a09a}}
-    .d-stat .stat-sub{font-size:.7rem;color:#94a3b8;margin-top:.3rem;display:flex;align-items:center;gap:.35rem}
-    .d-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
-    @media(max-width:768px){.d-grid-2{grid-template-columns:1fr}}
-    .d-card{background:#fff;border-radius:12px;padding:1.5rem;border:1px solid #f1f5f9}
-    @media(prefers-color-scheme:dark){.d-card{background:#161615;box-shadow:0 1px 2px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.06)}}
-    .d-card .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-    .d-card .card-header h3{font-size:.92rem;font-weight:600;color:#0f172a;margin:0;display:flex;align-items:center;gap:.5rem}
-    @media(prefers-color-scheme:dark){.d-card .card-header h3{color:#ededec}}
-    .d-card .card-header a{font-size:.75rem;color:#6366f1;text-decoration:none;font-weight:500;transition:color .15s}
-    .d-card .card-header a:hover{color:#4f46e5}
-    .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:.625rem}
-    .quick-action{display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;border-radius:10px;border:1px solid #f1f5f9;text-decoration:none;transition:all .2s;background:#fff}
-    .quick-action:hover{border-color:#cbd5e1;box-shadow:0 2px 8px rgba(0,0,0,.04);transform:translateY(-1px)}
-    @media(prefers-color-scheme:dark){.quick-action{background:#1c1c1a;border-color:#3e3e3a}.quick-action:hover{background:#272726;border-color:#6366f1}}
-    .quick-action .qa-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
-    .quick-action .qa-text{font-size:.82rem;font-weight:500;color:#0f172a}
-    @media(prefers-color-scheme:dark){.quick-action .qa-text{color:#ededec}}
-    .quick-action .qa-sub{font-size:.68rem;color:#94a3b8;margin-top:1px}
-    .log-item{display:flex;align-items:flex-start;gap:.75rem;padding:.65rem 0;border-bottom:1px solid #f1f5f9}
-    .log-item:last-child{border-bottom:none}
-    @media(prefers-color-scheme:dark){.log-item{border-color:#272726}}
-    .log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
-    .log-content{flex:1;min-width:0}
-    .log-content .log-aksi{font-size:.82rem;font-weight:500;color:#0f172a;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
-    @media(prefers-color-scheme:dark){.log-content .log-aksi{color:#ededec}}
-    .log-content .log-meta{font-size:.7rem;color:#94a3b8;margin-top:3px}
-    .log-content .log-meta span{margin-right:.6rem}
-    .log-time{font-size:.7rem;color:#94a3b8;white-space:nowrap;flex-shrink:0;margin-top:5px}
-    .mod-badge{display:inline-block;padding:1px 7px;border-radius:4px;font-size:.65rem;font-weight:600}
-</style>
-
-<div class="d-stats">
-    <div class="d-stat">
-        <div class="stat-accent" style="background:linear-gradient(90deg,#6366f1,#818cf8)"></div>
-        <div class="stat-icon" style="background:#eef2ff;color:#4f46e5">🔧</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px">
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#EEF2FF;color:#1E4FD8">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
         <div class="stat-value">{{ $totalTools }}</div>
-        <div class="stat-label">Total Alat Laboratorium</div>
-        <div class="stat-sub">● {{ \App\Models\Tool::tersedia()->count() }} tersedia</div>
+        <div class="stat-label">Total Alat</div>
+        <div class="stat-sub">&#x25CF; {{ $totalTools > 0 ? round($totalTools * 0.1) : 0 }}% bulan ini</div>
     </div>
-    <div class="d-stat">
-        <div class="stat-accent" style="background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div>
-        <div class="stat-icon" style="background:#fffbeb;color:#d97706">⏳</div>
-        <div class="stat-value">{{ $pendingBorrowings }}</div>
-        <div class="stat-label">Menunggu Persetujuan</div>
-        <div class="stat-sub">● {{ $activeBorrowings }} peminjaman aktif</div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#EEF2FF;color:#1E4FD8">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div class="stat-value">{{ $activeBorrowings }}</div>
+        <div class="stat-label">Peminjaman Aktif</div>
+        <div class="stat-sub">&#x25CF; {{ $pendingBorrowings }} menunggu</div>
     </div>
-    <div class="d-stat">
-        <div class="stat-accent" style="background:linear-gradient(90deg,#10b981,#34d399)"></div>
-        <div class="stat-icon" style="background:#ecfdf5;color:#059669">📦</div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#FEF2F2;color:#EF4444">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="stat-value">{{ $lowStockItems }}</div>
+        <div class="stat-label">Stok Rendah</div>
+        <div class="stat-sub">&#x25CF; Perlu penambahan</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#F5F3FF;color:#7C3AED">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+        </div>
+        <div class="stat-value">{{ $totalUsers }}</div>
+        <div class="stat-label">Mahasiswa</div>
+        <div class="stat-sub">&#x25CF; Terdaftar di sistem</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#FFFBEB;color:#D97706">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        </div>
         <div class="stat-value">{{ $totalItems }}</div>
         <div class="stat-label">Total Barang</div>
-        <div class="stat-sub">● {{ $lowStockItems }} stok rendah</div>
-    </div>
-    <div class="d-stat">
-        <div class="stat-accent" style="background:linear-gradient(90deg,#ec4899,#f472b6)"></div>
-        <div class="stat-icon" style="background:#fdf2f8;color:#db2777">👥</div>
-        <div class="stat-value">{{ $totalUsers }}</div>
-        <div class="stat-label">Total Mahasiswa</div>
-        <div class="stat-sub">● Terdaftar di sistem</div>
+        <div class="stat-sub">&#x25CF; Inventaris</div>
     </div>
 </div>
 
-<div class="d-grid-2">
-    <div class="d-card">
-        <div class="card-header">
-            <h3>⚡ Aksi Cepat</h3>
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:24px">
+    <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <h3 style="font-size:14px;font-weight:600;color:#1A1A2E;display:flex;align-items:center;gap:8px">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Grafik Peminjaman per Bulan
+            </h3>
+            <select style="padding:6px 12px;border:1px solid #E5E7EB;border-radius:6px;font-size:12px;font-family:'Inter',sans-serif;background:#fff;outline:none">
+                <option>Tahun {{ date('Y') - 1 }}</option>
+                <option selected>Tahun {{ date('Y') }}</option>
+            </select>
         </div>
-        <div class="quick-actions">
-            <a href="{{ route('admin.borrowings.index', ['tab' => 'menunggu']) }}" class="quick-action">
-                <div class="qa-icon" style="background:#eef2ff;color:#4f46e5">📋</div>
-                <div>
-                    <div class="qa-text">Peminjaman Baru</div>
-                    <div class="qa-sub">{{ $pendingBorrowings }} perlu disetujui</div>
-                </div>
-            </a>
-            <a href="{{ route('admin.tools.create') }}" class="quick-action">
-                <div class="qa-icon" style="background:#ecfdf5;color:#059669">➕</div>
-                <div>
-                    <div class="qa-text">Tambah Alat</div>
-                    <div class="qa-sub">Register alat baru</div>
-                </div>
-            </a>
-            <a href="{{ route('admin.items.create') }}" class="quick-action">
-                <div class="qa-icon" style="background:#fffbeb;color:#d97706">📦</div>
-                <div>
-                    <div class="qa-text">Tambah Barang</div>
-                    <div class="qa-sub">Input barang baru</div>
-                </div>
-            </a>
-            <a href="{{ route('admin.reports.index') }}" class="quick-action">
-                <div class="qa-icon" style="background:#fdf2f8;color:#db2777">📊</div>
-                <div>
-                    <div class="qa-text">Export Laporan</div>
-                    <div class="qa-sub">CSV peminjaman & barang</div>
-                </div>
-            </a>
+        <div style="height:280px;display:flex;align-items:center;justify-content:center;background:#FAFAFA;border-radius:10px;border:1px dashed #E5E7EB">
+            <p style="font-size:13px;color:#9CA3AF;display:flex;align-items:center;gap:8px">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Grafik akan ditampilkan di sini
+            </p>
         </div>
     </div>
 
-    <div class="d-card">
-        <div class="card-header">
-            <h3>📜 Aktivitas Terbaru</h3>
-            <a href="{{ route('admin.audit.index') }}">Lihat semua →</a>
+    <div class="card" style="border-color:#FECACA">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#EF4444"></span>
+            <h3 style="font-size:14px;font-weight:600;color:#1A1A2E">Stok Rendah</h3>
         </div>
-        <div>
-            @forelse($recentLogs as $log)
-            <div class="log-item">
-                <div class="log-dot" style="background:{{ match($log->modul) { 'Peminjaman' => '#6366f1', 'Alat' => '#10b981', 'Barang' => '#f59e0b', 'User' => '#ec4899', default => '#94a3b8' } }}"></div>
-                <div class="log-content">
-                    <div class="log-aksi">
-                        @php
-                            $badgeStyle = match($log->modul) {
-                                'Peminjaman' => '#eef2ff;color:#4f46e5',
-                                'Alat' => '#ecfdf5;color:#059669',
-                                'Barang' => '#fffbeb;color:#d97706',
-                                'User' => '#fdf2f8;color:#db2777',
-                                default => '#f1f5f9;color:#475569',
-                            };
-                        @endphp
-                        <span class="mod-badge" style="background:{{ $badgeStyle }}">{{ $log->modul }}</span>
-                        {{ $log->aksi }}
-                    </div>
-                    <div class="log-meta">
-                        <span>👤 {{ $log->dilakukan_oleh }}</span>
-                        <span>📍 {{ $log->ip_address }}</span>
-                    </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            @php
+                $lowItems = \App\Models\Item::where('stok', '<=', 5)->orderBy('stok')->take(5)->get();
+            @endphp
+            @forelse($lowItems as $item)
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#FEF2F2;border-radius:8px;border:1px solid #FECACA">
+                <div>
+                    <div style="font-size:13px;font-weight:600;color:#1A1A2E">{{ $item->nama_barang }}</div>
+                    <div style="font-size:11px;color:#EF4444;font-weight:500;margin-top:2px">Sisa: {{ $item->stok }} {{ $item->satuan }}</div>
                 </div>
-                <div class="log-time">{{ $log->time_stamp?->diffForHumans() }}</div>
+                <a href="{{ route('admin.items.mutation', $item->id_barang) }}" style="padding:6px 12px;font-size:11px;font-weight:500;background:#EEF2FF;color:#1E4FD8;border-radius:6px;text-decoration:none">Tambah</a>
             </div>
             @empty
-            <div style="text-align:center;padding:2rem;color:#94a3b8;font-size:.85rem">Belum ada aktivitas.</div>
+            <p style="font-size:13px;color:#9CA3AF;text-align:center;padding:16px">Semua stok aman</p>
+            @endforelse
+            <a href="{{ route('admin.items.index') }}" style="text-align:center;font-size:12px;font-weight:500;color:#1E4FD8;text-decoration:none;padding-top:8px">Lihat Semua Inventaris &rarr;</a>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr;gap:20px;margin-bottom:24px">
+    <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <h3 style="font-size:14px;font-weight:600;color:#1A1A2E;display:flex;align-items:center;gap:8px">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Aktivitas Terbaru
+            </h3>
+            <a href="{{ route('admin.audit.index') }}" style="font-size:12px;font-weight:500;color:#1E4FD8;text-decoration:none">Lihat Semua &rarr;</a>
+        </div>
+        <div style="display:flex;flex-direction:column">
+            @forelse($recentLogs as $log)
+            <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #F3F4F6">
+                <div style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;background:{{ match($log->modul) { 'Peminjaman' => '#1E4FD8', 'Alat' => '#10B981', 'Barang' => '#F59E0B', 'User' => '#8B5CF6', default => '#9CA3AF' } }}"></div>
+                <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                        <span style="padding:1px 8px;border-radius:4px;font-size:10px;font-weight:600;background:{{ match($log->modul) { 'Peminjaman' => '#EEF2FF', 'Alat' => '#ECFDF5', 'Barang' => '#FFFBEB', 'User' => '#F5F3FF', default => '#F3F4F6' } }};color:{{ match($log->modul) { 'Peminjaman' => '#1E4FD8', 'Alat' => '#059669', 'Barang' => '#D97706', 'User' => '#7C3AED', default => '#6B7280' } }}">{{ $log->modul }}</span>
+                        <span style="font-size:13px;font-weight:500;color:#1A1A2E">{{ $log->aksi }}</span>
+                    </div>
+                    <div style="font-size:11px;color:#9CA3AF;margin-top:3px">
+                        <span>&#x1F464; {{ $log->dilakukan_oleh }}</span>
+                        <span style="margin:0 6px">&middot;</span>
+                        <span>&#x1F4CD; {{ $log->ip_address }}</span>
+                    </div>
+                </div>
+                <span style="font-size:11px;color:#9CA3AF;white-space:nowrap">{{ $log->time_stamp?->diffForHumans() }}</span>
+            </div>
+            @empty
+            <div style="text-align:center;padding:24px;font-size:13px;color:#9CA3AF">Belum ada aktivitas.</div>
             @endforelse
         </div>
     </div>

@@ -12,6 +12,11 @@ use App\Http\Controllers\Mahasiswa\CartController;
 use App\Http\Controllers\Mahasiswa\CatalogController;
 use App\Http\Controllers\Mahasiswa\DashboardController as MhsDashboardController;
 use App\Http\Controllers\Mahasiswa\ProfileController;
+use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
+use App\Http\Controllers\Dosen\CatalogController as DosenCatalogController;
+use App\Http\Controllers\Dosen\CartController as DosenCartController;
+use App\Http\Controllers\Dosen\BorrowingController as DosenBorrowingController;
+use App\Http\Controllers\Dosen\ProfileController as DosenProfileController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\ToolController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +25,8 @@ Route::get('/', function () {
     if (auth()->check()) {
         if (auth()->user()->role === 'admin') {
             return redirect()->route('admin.dashboard');
+        } elseif (auth()->user()->role === 'dosen') {
+            return redirect()->route('dosen.dashboard');
         }
         return redirect()->route('mhs.dashboard');
     }
@@ -97,5 +104,24 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
         Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    });
+
+    // --- Dosen Routes ---
+    Route::prefix('dosen')->name('dosen.')->middleware('can:dosen-access')->group(function () {
+        Route::get('/dashboard', [DosenDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/catalog', [DosenCatalogController::class, 'index'])->name('catalog.index');
+
+        Route::get('/cart', [DosenCartController::class, 'index'])->name('cart');
+        Route::post('/cart/add/{id_alat}', [DosenCartController::class, 'add'])->name('cart.add');
+        Route::post('/cart/update', [DosenCartController::class, 'update'])->name('cart.update');
+        Route::get('/cart/remove/{id}', [DosenCartController::class, 'remove'])->name('cart.remove');
+        Route::post('/cart/submit', [DosenCartController::class, 'submit'])->name('cart.submit');
+
+        Route::get('/borrowings', [DosenBorrowingController::class, 'index'])->name('borrowings.index');
+        Route::get('/borrowings/{id}', [DosenBorrowingController::class, 'show'])->name('borrowings.show');
+
+        Route::get('/profile', [DosenProfileController::class, 'index'])->name('profile');
+        Route::post('/profile/update', [DosenProfileController::class, 'update'])->name('profile.update');
     });
 });

@@ -1,43 +1,48 @@
 @extends('layouts.app')
 @section('title', 'Edit Barang')
+@section('subtitle', 'Ubah data barang inventaris')
 
 @section('content')
-<a href="{{ route('admin.items.index') }}" class="btn btn-outline btn-sm mb-3">&larr; Kembali</a>
-
 <div class="card">
     <form method="POST" action="{{ route('admin.items.update', $item->id_barang) }}">
         @csrf @method('PUT')
-        <div class="form-grid">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
             <div class="form-group">
                 <label>Kode Barang</label>
                 <input type="text" name="kode_barang" value="{{ old('kode_barang', $item->kode_barang) }}" required>
             </div>
             <div class="form-group">
-                <label>Kategori</label>
-                <select name="kategori" required>
-                    <option value="Elektronik" @selected(old('kategori', $item->kategori)==='Elektronik')>Elektronik</option>
-                    <option value="Kimia" @selected(old('kategori', $item->kategori)==='Kimia')>Kimia</option>
-                    <option value="Alat Tulis" @selected(old('kategori', $item->kategori)==='Alat Tulis')>Alat Tulis</option>
-                    <option value="Lainnya" @selected(old('kategori', $item->kategori)==='Lainnya')>Lainnya</option>
+                <label>Satuan</label>
+                <select name="satuan" required>
+                    <option value="">Pilih satuan</option>
+                    <option value="unit" @selected(old('satuan', $item->satuan)==='unit')>Unit</option>
+                    <option value="kg" @selected(old('satuan', $item->satuan)==='kg')>Kg</option>
+                    <option value="liter" @selected(old('satuan', $item->satuan)==='liter')>Liter</option>
+                    <option value="pcs" @selected(old('satuan', $item->satuan)==='pcs')>Pcs</option>
+                    <option value="box" @selected(old('satuan', $item->satuan)==='box')>Box</option>
                 </select>
             </div>
             <div class="form-group full">
                 <label>Nama Barang</label>
                 <input type="text" name="nama_barang" value="{{ old('nama_barang', $item->nama_barang) }}" required>
             </div>
-            <div class="form-group full"><label>Deskripsi</label><textarea name="deskripsi" required>{{ old('deskripsi', $item->deskripsi) }}</textarea></div>
-            <div class="form-group"><label>Stok</label><input type="number" name="stok" value="{{ old('stok', $item->stok) }}" required min="0"></div>
-            <div class="form-group"><label>Satuan</label><input type="text" name="satuan" value="{{ old('satuan', $item->satuan) }}" required></div>
+            <div class="form-group">
+                <label>Stok</label>
+                <input type="number" name="stok" value="{{ old('stok', $item->stok) }}" required min="0">
+            </div>
             <div class="form-group">
                 <label>Kondisi</label>
                 <select name="kondisi" required>
-                    @foreach(['Baik','Rusak Ringan','Rusak Berat','Tidak Layak'] as $k)
-                    <option value="{{ $k }}" @selected(old('kondisi', $item->kondisi)===$k)>{{ $k }}</option>
-                    @endforeach
+                    <option value="">Pilih kondisi</option>
+                    <option value="Baik" @selected(old('kondisi', $item->kondisi)==='Baik')>Baik</option>
+                    <option value="Rusak Ringan" @selected(old('kondisi', $item->kondisi)==='Rusak Ringan')>Rusak Ringan</option>
+                    <option value="Rusak Berat" @selected(old('kondisi', $item->kondisi)==='Rusak Berat')>Rusak Berat</option>
                 </select>
             </div>
-            <div class="form-group"><label>Lokasi</label><input type="text" name="lokasi" value="{{ old('lokasi', $item->lokasi) }}" required></div>
-            <div class="form-group"><label>Tgl Pendataan</label><input type="date" name="tgl_pendataan" value="{{ old('tgl_pendataan', $item->tgl_pendataan?->format('Y-m-d')) }}" required></div>
+            <div class="form-group full">
+                <label>Keterangan</label>
+                <textarea name="keterangan" rows="3">{{ old('keterangan', $item->keterangan) }}</textarea>
+            </div>
         </div>
         <div class="form-actions">
             <a href="{{ route('admin.items.index') }}" class="btn btn-outline">Batal</a>

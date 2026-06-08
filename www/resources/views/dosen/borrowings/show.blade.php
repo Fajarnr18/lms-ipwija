@@ -2,7 +2,7 @@
 @section('title', 'Detail Peminjaman')
 
 @section('header-actions')
-<a href="{{ route('mhs.borrowings.index') }}" class="btn btn-sm btn-outline">&larr; Kembali</a>
+<a href="{{ route('dosen.borrowings.index') }}" class="btn btn-sm btn-outline">&larr; Kembali</a>
 @endsection
 
 @section('content')

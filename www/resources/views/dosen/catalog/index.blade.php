@@ -2,7 +2,7 @@
 @section('title', 'Katalog Alat')
 
 @section('content')
-<form method="GET" action="{{ route('mhs.catalog.index') }}">
+<form method="GET" action="{{ route('dosen.catalog.index') }}">
     <div class="toolbar">
         <div class="toolbar-item">
             <label>Cari</label>
@@ -30,7 +30,7 @@
         <p style="font-size:13px;color:#6B7280;margin:0 0 12px;flex:1;line-height:1.4">{{ Str::limit($tool->deskripsi, 100) }}</p>
         <div style="margin-top:auto">
             @if($tool->stok_tersedia > 0)
-            <form method="POST" action="{{ route('mhs.cart.add', $tool->id_alat) }}">
+            <form method="POST" action="{{ route('dosen.cart.add', $tool->id_alat) }}">
                 @csrf
                 <input type="hidden" name="id_alat" value="{{ $tool->id_alat }}">
                 <label style="font-size:11px;font-weight:500;color:#6B7280;display:block;margin-bottom:4px">Jumlah</label>

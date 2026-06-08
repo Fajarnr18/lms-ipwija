@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Peminjaman')
+@section('subtitle', 'Kelola peminjaman alat laboratorium')
 
 @section('content')
 <div class="tabs">
@@ -16,36 +17,47 @@
             <label>Cari</label>
             <input type="text" name="search" placeholder="Nama peminjam..." value="{{ request('search') }}" style="min-width:200px">
         </div>
+        <div class="toolbar-item">
+            <label>Tanggal</label>
+            <input type="date" name="date" value="{{ request('date') }}">
+        </div>
         <button type="submit" class="btn btn-sm">Cari</button>
     </div>
 </form>
 
 <div class="card">
-    <div class="overflow-x-auto">
+    <div style="overflow-x:auto">
         <table>
             <thead>
-                <tr><th>ID</th><th>Peminjam</th><th>NIM</th><th>Tgl Pengajuan</th><th>Rencana Pinjam</th><th>Rencana Kembali</th><th>Status</th><th>Aksi</th></tr>
+                <tr>
+                    <th>Kode</th>
+                    <th>Peminjam</th>
+                    <th>Tanggal</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
             </thead>
             <tbody>
                 @forelse($borrowings as $b)
                 <tr>
-                    <td>{{ $b->id_borrowing }}</td>
-                    <td>{{ $b->mahasiswa?->nama_lengkap }}</td>
-                    <td>{{ $b->mahasiswa?->nim }}</td>
-                    <td>{{ $b->tgl_pengajuan?->format('d/m/Y') }}</td>
-                    <td>{{ $b->tgl_rencana_pinjam?->format('d/m/Y') }}</td>
-                    <td>{{ $b->tgl_rencana_kembali?->format('d/m/Y') }}</td>
+                    <td style="font-weight:600;color:#1A1A2E">#{{ $b->id_borrowing }}</td>
                     <td>
-                        <span class="badge @php
-                            echo match($b->status) {
-                                'Menunggu' => 'badge-pending',
-                                'Disetujui' => 'badge-approved',
-                                'Ditolak' => 'badge-rejected',
-                                'Dipinjam' => 'badge-borrowed',
-                                'Dikembalikan' => 'badge-returned',
-                                default => 'badge-pending',
-                            };
-                        @endphp">{{ $b->status }}</span>
+                        <div>{{ $b->mahasiswa?->nama_lengkap }}</div>
+                        <div style="font-size:11px;color:#6B7280">{{ $b->mahasiswa?->nim }}</div>
+                    </td>
+                    <td>{{ $b->tgl_pengajuan?->format('d/m/Y') }}</td>
+                    <td>
+                        @php
+                        $badgeClass = match($b->status) {
+                            'Menunggu' => 'badge-yellow',
+                            'Disetujui' => 'badge-blue',
+                            'Ditolak' => 'badge-red',
+                            'Dipinjam' => 'badge-purple',
+                            'Dikembalikan' => 'badge-green',
+                            default => 'badge-gray',
+                        };
+                        @endphp
+                        <span class="badge {{ $badgeClass }}">{{ $b->status }}</span>
                     </td>
                     <td>
                         <div class="action-group">
@@ -58,13 +70,17 @@
                             <button class="btn btn-sm btn-danger" onclick="showRejectModal({{ $b->id_borrowing }})">Tolak</button>
                             @endif
                             @if(in_array($b->status, ['Disetujui', 'Dipinjam']))
-                            <a href="{{ route('admin.borrowings.return', $b->id_borrowing) }}" class="btn btn-sm btn-info">Catat Kembali</a>
+                            <a href="{{ route('admin.borrowings.return', $b->id_borrowing) }}" class="btn btn-sm" style="background:#6366F1">Catat Kembali</a>
                             @endif
                         </div>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" style="text-align:center;padding:2rem;color:#64748b">Tidak ada peminjaman.</td></tr>
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">Tidak ada peminjaman.</div>
+                    </td>
+                </tr>
                 @endforelse
             </tbody>
         </table>
@@ -76,20 +92,26 @@
 
 <div class="modal-overlay" id="rejectModal">
     <div class="modal">
-        <h2>Tolak Peminjaman</h2>
+        <h2 style="font-size:16px;font-weight:600;margin:0 0 16px">Tolak Peminjaman</h2>
         <form method="POST" action="" id="rejectForm">
             @csrf
             <div class="form-group">
                 <label>Catatan Penolakan</label>
-                <textarea name="catatan_admin" required placeholder="Alasan penolakan..."></textarea>
+                <textarea name="catatan_admin" required placeholder="Alasan penolakan..." rows="3"></textarea>
             </div>
-            <div class="modal-actions">
+            <div class="form-actions">
                 <button type="button" class="btn btn-outline" onclick="document.getElementById('rejectModal').classList.remove('show')">Batal</button>
                 <button type="submit" class="btn btn-danger">Tolak</button>
             </div>
         </form>
     </div>
 </div>
+
+<style>
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:50; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.show { display:flex; }
+.modal { background:#fff; border-radius:12px; padding:24px; width:100%; max-width:480px; }
+</style>
 
 <script>
 function showRejectModal(id) {

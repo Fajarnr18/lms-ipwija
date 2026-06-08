@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Http\Controllers\Dosen;
+
+use App\Http\Controllers\Controller;
+use App\Models\Borowing;
+use App\Models\Tool;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class DashboardController extends Controller
+{
+    public function index(): View
+    {
+        $activeBorrowing = Borowing::where('mahasiswa_id', auth()->id())
+            ->whereIn('status', ['Disetujui', 'Dipinjam'])
+            ->with(['borrowingItems.tool'])
+            ->latest()
+            ->first();
+
+        $recentBorrowings = Borowing::where('mahasiswa_id', auth()->id())
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $availableTools = Tool::tersedia()->count();
+
+        return view('dosen.dashboard.index', compact(
+            'activeBorrowing', 'recentBorrowings', 'availableTools'
+        ));
+    }
+}
