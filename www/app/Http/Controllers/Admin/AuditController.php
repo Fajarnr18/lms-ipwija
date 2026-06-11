@@ -21,15 +21,29 @@ class AuditController extends Controller
             });
         }
 
-        if ($request->modul) $query->where('modul', $request->modul);
-        if ($request->aksi) $query->where('aksi', 'like', "%{$request->aksi}%");
-        if ($request->role_pelaku) $query->where('role_pelaku', $request->role_pelaku);
-        if ($request->dari) $query->whereDate('time_stamp', '>=', $request->dari);
-        if ($request->sampai) $query->whereDate('time_stamp', '<=', $request->sampai);
+        if ($request->modul) {
+            $query->where('modul', $request->modul);
+        }
+
+        if ($request->aksi) {
+            $query->where('aksi', 'like', "%{$request->aksi}%");
+        }
+
+        if ($request->role_pelaku) {
+            $query->where('role_pelaku', $request->role_pelaku);
+        }
+
+        if ($request->dari) {
+            $query->whereDate('time_stamp', '>=', $request->dari);
+        }
+
+        if ($request->sampai) {
+            $query->whereDate('time_stamp', '<=', $request->sampai);
+        }
 
         $logs = $query->orderBy('time_stamp', 'desc')->paginate(20);
         $moduls = AuditLog::select('modul')->distinct()->pluck('modul');
 
-        return view('admin.audit.index', compact('logs', 'moduls'));
+        return view('admin.audit-trail.index', compact('logs', 'moduls'));
     }
 }

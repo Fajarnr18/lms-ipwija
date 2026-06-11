@@ -20,7 +20,7 @@ class StoreToolRequest extends FormRequest
             'deskripsi' => 'required|string',
             'stok_total' => 'required|integer|min:0',
             'stok_tersedia' => 'required|integer|min:0|lte:stok_total',
-            'status_alat' => 'required|in:Tersedia,Dipinjam,Rusak,Dalam Perbaikan',
+            'status_alat' => 'required|in:TERSEDIA,MAINTENANCE',
             'lokasi' => 'required|string|max:50',
             'foto_alat' => 'nullable|string|max:255',
         ];
@@ -31,7 +31,7 @@ class StoreToolRequest extends FormRequest
         return [
             'kode_alat.unique' => 'Kode alat sudah digunakan.',
             'stok_tersedia.lte' => 'Stok tersedia tidak boleh melebihi stok total.',
-            'status_alat.in' => 'Status alat harus: Tersedia, Dipinjam, Rusak, atau Dalam Perbaikan.',
+            'status_alat.in' => 'Status alat harus: TERSEDIA atau MAINTENANCE.',
         ];
     }
 }

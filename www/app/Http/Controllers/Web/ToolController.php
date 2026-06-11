@@ -41,8 +41,7 @@ class ToolController extends Controller
             'deskripsi' => 'required|string',
             'stok_total' => 'required|integer|min:0',
             'stok_tersedia' => 'required|integer|min:0|lte:stok_total',
-            'status_alat' => 'required|in:Tersedia,Dipinjam,Rusak,Dalam Perbaikan',
-            'lokasi' => 'required|string|max:50',
+            'status_alat' => 'required|in:TERSEDIA,MAINTENANCE',
         ], [
             'kode_alat.unique' => 'Kode alat sudah digunakan.',
             'stok_tersedia.lte' => 'Stok tersedia tidak boleh melebihi stok total.',
@@ -72,8 +71,7 @@ class ToolController extends Controller
             'deskripsi' => 'required|string',
             'stok_total' => 'required|integer|min:0',
             'stok_tersedia' => 'required|integer|min:0|lte:stok_total',
-            'status_alat' => 'required|in:Tersedia,Dipinjam,Rusak,Dalam Perbaikan',
-            'lokasi' => 'required|string|max:50',
+            'status_alat' => 'required|in:TERSEDIA,MAINTENANCE',
         ], [
             'kode_alat.unique' => 'Kode alat sudah digunakan.',
             'stok_tersedia.lte' => 'Stok tersedia tidak boleh melebihi stok total.',

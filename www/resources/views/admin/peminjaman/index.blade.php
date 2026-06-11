@@ -1,0 +1,123 @@
+@extends('layouts.app')
+@section('title', 'Data Peminjaman')
+@section('subtitle', 'Kelola peminjaman alat laboratorium')
+
+@section('content')
+<div class="tabs">
+    <a href="{{ route('admin.peminjaman.index', ['tab' => 'semua']) }}" class="{{ ($tab ?? 'semua') === 'semua' ? 'active' : '' }}">Semua</a>
+    <a href="{{ route('admin.peminjaman.index', ['tab' => 'menunggu']) }}" class="{{ ($tab ?? '') === 'menunggu' ? 'active' : '' }}">Menunggu</a>
+    <a href="{{ route('admin.peminjaman.index', ['tab' => 'aktif']) }}" class="{{ ($tab ?? '') === 'aktif' ? 'active' : '' }}">Aktif</a>
+    <a href="{{ route('admin.peminjaman.index', ['tab' => 'selesai']) }}" class="{{ ($tab ?? '') === 'selesai' ? 'active' : '' }}">Selesai</a>
+    <a href="{{ route('admin.peminjaman.index', ['tab' => 'ditolak']) }}" class="{{ ($tab ?? '') === 'ditolak' ? 'active' : '' }}">Ditolak</a>
+</div>
+
+<form method="GET" action="{{ route('admin.peminjaman.index') }}">
+    <input type="hidden" name="tab" value="{{ $tab ?? 'semua' }}">
+    <div class="toolbar">
+        <div class="toolbar-item">
+            <label>Cari</label>
+            <input type="text" name="search" placeholder="Nama/NIM peminjam..." value="{{ request('search') }}" style="min-width:200px">
+        </div>
+        <div class="toolbar-item">
+            <label>Tanggal</label>
+            <input type="date" name="date" value="{{ request('date') }}">
+        </div>
+        <button type="submit" class="btn btn-sm">Cari</button>
+    </div>
+</form>
+
+<div class="card">
+    <div style="overflow-x:auto">
+        <table>
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Pemohon</th>
+                    <th>NIM</th>
+                    <th>Tanggal</th>
+                    <th>Status</th>
+                    <th style="text-align:center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($borrowings as $b)
+                <tr>
+                    <td style="font-weight:600;color:#1A1A2E">{{ $loop->iteration + ($borrowings->currentPage() - 1) * $borrowings->perPage() }}</td>
+                    <td>
+                        <div>{{ $b->mahasiswa?->nama_lengkap }}</div>
+                        <div style="font-size:11px;color:#6B7280">{{ $b->mahasiswa?->role === 'dosen' ? 'Dosen' : 'Mahasiswa' }}</div>
+                    </td>
+                    <td>{{ $b->mahasiswa?->nim }}</td>
+                    <td style="white-space:nowrap">{{ $b->tgl_pengajuan?->format('d/m/Y') }}</td>
+                    <td>
+                        @php
+                        $badgeClass = match($b->status) {
+                            'MENUNGGU' => 'badge-yellow',
+                            'DISETUJUI' => 'badge-blue',
+                            'DITOLAK' => 'badge-red',
+                            'DIPINJAM' => 'badge-purple',
+                            'DIKEMBALIKAN' => 'badge-green',
+                            default => 'badge-gray',
+                        };
+                        @endphp
+                        <span class="badge {{ $badgeClass }}">{{ $b->status }}</span>
+                    </td>
+                    <td>
+                        <div class="action-group" style="justify-content:center">
+                            <a href="{{ route('admin.peminjaman.show', $b->id_borrowing) }}" class="btn btn-outline btn-sm">Detail</a>
+                            @if($b->status === 'MENUNGGU')
+                            <form method="POST" action="{{ route('admin.peminjaman.approve', $b->id_borrowing) }}" style="display:inline" onsubmit="return confirmAction('Setujui peminjaman ini?')">
+                                @csrf
+                                <button class="btn btn-success btn-sm">Setuju</button>
+                            </form>
+                            <button class="btn btn-danger btn-sm" onclick="showRejectModal({{ $b->id_borrowing }})">Tolak</button>
+                            @endif
+                            @if($b->status === 'DISETUJUI')
+                            <form method="POST" action="{{ route('admin.peminjaman.proses', $b->id_borrowing) }}" style="display:inline" onsubmit="return confirmAction('Proses peminjaman ini?')">
+                                @csrf
+                                <button class="btn btn-info btn-sm">Proses</button>
+                            </form>
+                            @endif
+                            @if($b->status === 'DIPINJAM')
+                            <a href="{{ route('admin.peminjaman.aktif') }}" class="btn btn-sm" style="background:#8B5CF6">Pengembalian</a>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6"><div class="empty-state">Tidak ada peminjaman.</div></td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    @if($borrowings->hasPages())
+    <div class="pagination">{{ $borrowings->appends(request()->query())->links() }}</div>
+    @endif
+</div>
+
+<div class="modal-overlay" id="rejectModal">
+    <div class="modal">
+        <h2>Tolak Peminjaman</h2>
+        <form method="POST" action="" id="rejectForm">
+            @csrf
+            <div class="form-group">
+                <label>Catatan Penolakan</label>
+                <textarea name="catatan_admin" required placeholder="Alasan penolakan..." rows="3"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" onclick="document.getElementById('rejectModal').classList.remove('show')">Batal</button>
+                <button type="submit" class="btn btn-danger">Tolak</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showRejectModal(id) {
+    document.getElementById('rejectForm').action = '{{ url("admin/peminjaman") }}/' + id + '/reject';
+    document.getElementById('rejectModal').classList.add('show');
+}
+</script>
+@endsection

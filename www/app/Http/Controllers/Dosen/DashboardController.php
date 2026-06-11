@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Dosen;
 use App\Http\Controllers\Controller;
 use App\Models\Borowing;
 use App\Models\Tool;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -13,7 +12,7 @@ class DashboardController extends Controller
     public function index(): View
     {
         $activeBorrowing = Borowing::where('mahasiswa_id', auth()->id())
-            ->whereIn('status', ['Disetujui', 'Dipinjam'])
+            ->whereIn('status', ['DISETUJUI', 'DIPINJAM'])
             ->with(['borrowingItems.tool'])
             ->latest()
             ->first();

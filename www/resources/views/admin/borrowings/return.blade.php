@@ -21,12 +21,10 @@
 <div class="card">
     <form method="POST" action="{{ route('admin.borrowings.return-submit', $borowing->id_borrowing) }}">
         @csrf
-
         <div class="form-group">
             <label>Tanggal Pengembalian Aktual</label>
             <input type="date" name="tgl_pengembalian_aktual" value="{{ old('tgl_pengembalian_aktual', date('Y-m-d')) }}" required style="max-width:280px">
         </div>
-
         <h3 style="font-size:14px;font-weight:600;margin:20px 0 16px">Kondisi Alat Kembali</h3>
         <div style="overflow-x:auto">
             <table>
@@ -47,7 +45,7 @@
                         <td>{{ $item->jumlah_unit }}</td>
                         <td>
                             <input type="hidden" name="items[{{ $index }}][id_borrowings_item]" value="{{ $item->id_borrowings_item }}">
-                            <select name="items[{{ $index }}][kondisi_saat_kembali]" required style="min-width:130px">
+                            <select name="items[{{ $index }}][kondisi_saat_kembali]" required style="min-width:130px" class="kondisi-select" onchange="checkAllFilled()">
                                 <option value="">Pilih</option>
                                 <option value="Baik">Baik</option>
                                 <option value="Rusak Ringan">Rusak Ringan</option>
@@ -62,11 +60,20 @@
                 </tbody>
             </table>
         </div>
-
         <div class="form-actions">
             <a href="{{ route('admin.borrowings.index', ['tab' => 'aktif']) }}" class="btn btn-outline">Batal</a>
-            <button type="submit" class="btn btn-success">Simpan Pengembalian</button>
+            <button type="submit" class="btn btn-success" id="simpanBtn">Simpan Pengembalian</button>
         </div>
     </form>
 </div>
+
+<script>
+function checkAllFilled() {
+    var selects = document.querySelectorAll('.kondisi-select');
+    var allFilled = true;
+    selects.forEach(function(s) { if (!s.value) allFilled = false; });
+    document.getElementById('simpanBtn').disabled = !allFilled;
+}
+document.addEventListener('DOMContentLoaded', checkAllFilled);
+</script>
 @endsection

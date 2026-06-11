@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,7 +13,7 @@ class ProfileController extends Controller
 {
     public function index(): View
     {
-        return view('dosen.profile.index');
+        return view('dosen.profil.index');
     }
 
     public function update(Request $request): RedirectResponse
@@ -24,12 +23,8 @@ class ProfileController extends Controller
         $request->validate([
             'nama_lengkap' => 'required|string|max:255',
             'email' => "required|email|max:255|unique:users,email,{$user->id}",
-            'password' => 'nullable|string|min:8',
-            'password_baru' => 'nullable|string|min:8',
-            'konfirmasi_password_baru' => 'nullable|string|same:password_baru',
         ], [
-            'password_baru.min' => 'Password baru minimal 8 karakter.',
-            'konfirmasi_password_baru.same' => 'Konfirmasi password baru tidak cocok.',
+            'email.email' => 'Format email tidak valid.',
         ]);
 
         $data = [
@@ -38,17 +33,27 @@ class ProfileController extends Controller
         ];
 
         if ($request->filled('password_baru')) {
+            $request->validate([
+                'password' => 'required|string',
+                'password_baru' => 'required|string|min:8',
+                'konfirmasi_password_baru' => 'required|string|same:password_baru',
+            ], [
+                'password_baru.min' => 'Password baru minimal 8 karakter.',
+                'konfirmasi_password_baru.same' => 'Konfirmasi password baru tidak cocok.',
+            ]);
+
             if (!Hash::check($request->password, $user->password)) {
                 return back()->withErrors(['password' => 'Password saat ini tidak valid.']);
             }
-            $data['password'] = $request->password_baru;
+
+            $data['password'] = Hash::make($request->password_baru);
         }
 
         $before = $user->fresh()->toArray();
         $user->update($data);
         $after = $user->fresh()->toArray();
 
-        AuditLogService::log('User', 'UPDATE', $user->id, $before, $after);
+        AuditLogService::log('USER', 'UPDATE_PROFILE', $user->id, $before, $after);
 
         return back()->with('success', 'Profil berhasil diperbarui.');
     }

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'kode_alat', 'nama_alat', 'kategori', 'deskripsi',
-    'stok_total', 'stok_tersedia', 'status_alat', 'lokasi', 'foto_alat',
+    'stok_total', 'stok_tersedia', 'status_alat', 'lokasi', 'foto_alat', 'kondisi_fisik',
 ])]
 class Tool extends Model
 {
@@ -29,7 +29,7 @@ class Tool extends Model
     #[Scope]
     protected function tersedia(Builder $query): void
     {
-        $query->where('status_alat', 'Tersedia')->where('stok_tersedia', '>', 0);
+        $query->where('status_alat', 'TERSEDIA')->where('stok_tersedia', '>', 0);
     }
 
     public function scopeSearch(Builder $query, ?string $search): Builder

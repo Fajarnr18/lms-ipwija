@@ -14,7 +14,7 @@ class Borowing extends Model
     protected $fillable = [
         'mahasiswa_id', 'tgl_pengajuan', 'tgl_rencana_pinjam', 'tgl_rencana_kembali',
         'keperluan', 'status', 'diproses_oleh', 'tgl_diproses',
-        'catatan_admin', 'tgl_pengembalian_aktual',
+        'catatan_admin', 'tgl_pengembalian_aktual', 'alasan_penolakan',
     ];
 
     public function getRouteKeyName(): string

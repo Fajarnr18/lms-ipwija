@@ -20,21 +20,27 @@ class BorrowingController extends Controller
         $tab = $request->tab ?? 'semua';
         $query = Borowing::with(['mahasiswa', 'borrowingItems.tool']);
 
-        if ($tab !== 'semua') {
-            $statuses = match ($tab) {
-                'menunggu' => ['Menunggu'],
-                'aktif' => ['Disetujui', 'Dipinjam'],
-                'selesai' => ['Dikembalikan'],
-                default => [],
-            };
-            $query->whereIn('status', $statuses);
+        $tabStatuses = [
+            'menunggu' => ['MENUNGGU'],
+            'aktif' => ['DISETUJUI', 'DIPINJAM'],
+            'selesai' => ['DIKEMBALIKAN', 'DITOLAK'],
+        ];
+
+        if ($tab !== 'semua' && isset($tabStatuses[$tab])) {
+            $query->whereIn('status', $tabStatuses[$tab]);
         }
 
         $query->search($request->search);
 
         $borrowings = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        return view('admin.borrowings.index', compact('borrowings', 'tab'));
+        return view('admin.peminjaman.index', compact('borrowings', 'tab'));
+    }
+
+    public function show(Borowing $borowing): View
+    {
+        $borowing->load(['mahasiswa', 'prosesOleh', 'borrowingItems.tool']);
+        return view('admin.peminjaman.show', compact('borowing'));
     }
 
     public function approve(Borowing $borowing): RedirectResponse
@@ -43,7 +49,7 @@ class BorrowingController extends Controller
             $old = $borowing->toArray();
 
             $borowing->update([
-                'status' => 'Disetujui',
+                'status' => 'DISETUJUI',
                 'diproses_oleh' => auth()->id(),
                 'tgl_diproses' => now(),
             ]);
@@ -55,8 +61,13 @@ class BorrowingController extends Controller
                 }
             }
 
-            AuditLogService::log('Peminjaman', 'APPROVE', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
-            N8NWebhookService::send('borrowing.approved', $borowing);
+            AuditLogService::log('PEMINJAMAN', 'APPROVE', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
+            N8NWebhookService::send('approved', [
+                'borrowingId' => $borowing->id_borrowing,
+                'userName' => $borowing->mahasiswa?->nama_lengkap,
+                'email' => $borowing->mahasiswa?->email,
+                'tanggalPinjam' => $borowing->tgl_rencana_pinjam?->format('Y-m-d'),
+            ]);
         });
 
         return redirect()->back()->with('success', 'Peminjaman berhasil disetujui.');
@@ -64,7 +75,9 @@ class BorrowingController extends Controller
 
     public function reject(Request $request, Borowing $borowing): RedirectResponse
     {
-        $request->validate(['catatan_admin' => 'required|string']);
+        $request->validate([
+            'catatan_admin' => 'required|string',
+        ]);
 
         DB::transaction(function () use ($request, $borowing) {
             $old = $borowing->toArray();
@@ -75,26 +88,52 @@ class BorrowingController extends Controller
             }
 
             $borowing->update([
-                'status' => 'Ditolak',
+                'status' => 'DITOLAK',
                 'diproses_oleh' => auth()->id(),
                 'tgl_diproses' => now(),
                 'catatan_admin' => $request->catatan_admin,
             ]);
 
-            AuditLogService::log('Peminjaman', 'REJECT', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
-            N8NWebhookService::send('borrowing.rejected', $borowing);
+            AuditLogService::log('PEMINJAMAN', 'REJECT', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
+            N8NWebhookService::send('rejected', [
+                'borrowingId' => $borowing->id_borrowing,
+                'userName' => $borowing->mahasiswa?->nama_lengkap,
+                'email' => $borowing->mahasiswa?->email,
+                'alasanPenolakan' => $request->catatan_admin,
+            ]);
         });
 
         return redirect()->back()->with('success', 'Peminjaman ditolak.');
     }
 
-    public function returnForm(Borowing $borowing): View
+    public function prosesPeminjaman(Borowing $borowing): RedirectResponse
     {
-        $borowing->load(['mahasiswa', 'borrowingItems.tool']);
-        return view('admin.borrowings.return', compact('borowing'));
+        DB::transaction(function () use ($borowing) {
+            $old = $borowing->toArray();
+
+            $borowing->update([
+                'status' => 'DIPINJAM',
+                'diproses_oleh' => auth()->id(),
+                'tgl_diproses' => now(),
+            ]);
+
+            AuditLogService::log('PEMINJAMAN', 'PROSES', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
+        });
+
+        return redirect()->back()->with('success', 'Peminjaman sedang diproses.');
     }
 
-    public function returnSubmit(Request $request, Borowing $borowing): RedirectResponse
+    public function aktif(): View
+    {
+        $borrowings = Borowing::with(['mahasiswa', 'borrowingItems.tool'])
+            ->where('status', 'DIPINJAM')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('admin.peminjaman.aktif', compact('borrowings'));
+    }
+
+    public function kembali(Request $request, Borowing $borowing): RedirectResponse
     {
         $request->validate([
             'items' => 'required|array',
@@ -124,21 +163,19 @@ class BorrowingController extends Controller
             }
 
             $borowing->update([
-                'status' => 'Dikembalikan',
+                'status' => 'DIKEMBALIKAN',
                 'tgl_pengembalian_aktual' => now(),
             ]);
 
-            AuditLogService::log('Peminjaman', 'RETURN', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
-            N8NWebhookService::send('borrowing.returned', $borowing);
+            AuditLogService::log('PEMINJAMAN', 'RETURN', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
+            N8NWebhookService::send('returned', [
+                'borrowingId' => $borowing->id_borrowing,
+                'userName' => $borowing->mahasiswa?->nama_lengkap,
+                'email' => $borowing->mahasiswa?->email,
+            ]);
         });
 
-        return redirect()->route('admin.borrowings.index', ['tab' => 'aktif'])
+        return redirect()->route('admin.peminjaman.aktif')
             ->with('success', 'Pengembalian berhasil dicatat.');
-    }
-
-    public function show(int $id): View
-    {
-        $borowing = Borowing::with(['mahasiswa', 'prosesOleh', 'borrowingItems.tool'])->findOrFail($id);
-        return view('admin.borrowings.show', compact('borowing'));
     }
 }

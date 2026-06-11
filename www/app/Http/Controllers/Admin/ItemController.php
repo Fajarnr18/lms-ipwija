@@ -31,12 +31,19 @@ class ItemController extends Controller
 
         $items = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        return view('admin.items.index', compact('items'));
+        $mutations = collect();
+        if ($request->tab === 'mutasi') {
+            $mutations = ItemMutation::with(['item', 'admin'])
+                ->orderBy('time_stamp', 'desc')
+                ->paginate(20);
+        }
+
+        return view('admin.inventaris.index', compact('items', 'mutations'));
     }
 
     public function create(): View
     {
-        return view('admin.items.create');
+        return view('admin.inventaris.create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -55,15 +62,15 @@ class ItemController extends Controller
 
         $item = Item::create($request->all());
 
-        AuditLogService::log('Barang', 'CREATE', $item->id_barang, null, $item->toArray());
+        AuditLogService::log('INVENTARIS', 'CREATE', $item->id_barang, null, $item->toArray());
 
-        return redirect()->route('admin.items.index')->with('success', 'Barang berhasil ditambahkan.');
+        return redirect()->route('admin.inventaris.index')->with('success', 'Barang berhasil ditambahkan.');
     }
 
     public function edit(int $id): View
     {
         $item = Item::withTrashed()->findOrFail($id);
-        return view('admin.items.edit', compact('item'));
+        return view('admin.inventaris.edit', compact('item'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -85,29 +92,19 @@ class ItemController extends Controller
         $before = $item->toArray();
         $item->update($request->all());
 
-        AuditLogService::log('Barang', 'UPDATE', (string) $id, $before, $item->toArray());
+        AuditLogService::log('INVENTARIS', 'UPDATE', $id, $before, $item->toArray());
 
-        return redirect()->route('admin.items.index')->with('success', 'Barang berhasil diperbarui.');
+        return redirect()->route('admin.inventaris.index')->with('success', 'Barang berhasil diperbarui.');
     }
 
-    public function destroy(int $id): RedirectResponse
-    {
-        $item = Item::findOrFail($id);
-        $item->delete();
-
-        AuditLogService::log('Barang', 'DELETE', (string) $id, $item->toArray(), null);
-
-        return redirect()->route('admin.items.index')->with('success', 'Barang berhasil dihapus.');
-    }
-
-    public function mutation(int $id): View
+    public function mutasi(int $id): View
     {
         $item = Item::withTrashed()->findOrFail($id);
         $mutations = ItemMutation::where('id_barang', $id)->orderBy('time_stamp', 'desc')->get();
-        return view('admin.items.mutation', compact('item', 'mutations'));
+        return view('admin.inventaris.mutasi', compact('item', 'mutations'));
     }
 
-    public function mutationStore(Request $request, int $id): RedirectResponse
+    public function mutasiStore(Request $request, int $id): RedirectResponse
     {
         $item = Item::withTrashed()->findOrFail($id);
 
@@ -142,9 +139,9 @@ class ItemController extends Controller
                 'time_stamp' => now(),
             ]);
 
-            AuditLogService::log('Barang', 'MUTASI', $item->id_barang, ['stok' => $stokSebelum], ['stok' => $stokSesudah]);
+            AuditLogService::log('INVENTARIS', 'MUTASI', $item->id_barang, ['stok' => $stokSebelum], ['stok' => $stokSesudah]);
         });
 
-        return redirect()->route('admin.items.mutation', $id)->with('success', 'Mutasi stok berhasil.');
+        return redirect()->route('admin.inventaris.mutasi', $id)->with('success', 'Mutasi stok berhasil.');
     }
 }

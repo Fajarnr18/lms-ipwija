@@ -11,7 +11,8 @@ class BorrowingController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Borowing::where('mahasiswa_id', auth()->id())->with(['borrowingItems.tool']);
+        $query = Borowing::where('mahasiswa_id', auth()->id())
+            ->with(['borrowingItems.tool']);
 
         if ($request->status) {
             $query->where('status', $request->status);
@@ -19,7 +20,7 @@ class BorrowingController extends Controller
 
         $borrowings = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        return view('dosen.borrowings.index', compact('borrowings'));
+        return view('dosen.peminjaman.index', compact('borrowings'));
     }
 
     public function show(int $id): View
@@ -28,6 +29,6 @@ class BorrowingController extends Controller
             ->where('mahasiswa_id', auth()->id())
             ->findOrFail($id);
 
-        return view('dosen.borrowings.show', compact('borowing'));
+        return view('dosen.peminjaman.show', compact('borowing'));
     }
 }

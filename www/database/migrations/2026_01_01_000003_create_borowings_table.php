@@ -15,10 +15,11 @@ return new class extends Migration
             $table->date('tgl_rencana_pinjam');
             $table->date('tgl_rencana_kembali');
             $table->text('keperluan');
-            $table->enum('status', ['Menunggu', 'Disetujui', 'Ditolak', 'Dipinjam', 'Dikembalikan']);
+            $table->enum('status', ['MENUNGGU', 'DISETUJUI', 'DITOLAK', 'DIPINJAM', 'DIKEMBALIKAN']);
             $table->foreignId('diproses_oleh')->nullable()->constrained('users', 'id');
             $table->dateTime('tgl_diproses')->nullable();
             $table->text('catatan_admin')->nullable();
+            $table->text('alasan_penolakan')->nullable();
             $table->dateTime('tgl_pengembalian_aktual')->nullable();
             $table->timestamps();
 

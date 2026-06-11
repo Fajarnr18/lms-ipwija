@@ -23,12 +23,20 @@ class UserController extends Controller
             });
         }
 
+        if ($request->role) {
+            $query->where('role', $request->role);
+        }
+
         if ($request->status !== null && $request->status !== '') {
             $query->where('is_active', $request->status);
         }
 
+        if ($request->prodi) {
+            $query->where('program_studi', 'like', "%{$request->prodi}%");
+        }
+
         $users = $query->withCount(['borrowings as total_peminjaman' => function ($q) {
-            $q->where('status', '!=', 'Ditolak');
+            $q->where('status', '!=', 'DITOLAK');
         }])->orderBy('created_at', 'desc')->paginate(20);
 
         return view('admin.users.index', compact('users'));
@@ -42,9 +50,11 @@ class UserController extends Controller
             return back()->with('error', 'Tidak dapat mengubah status admin.');
         }
 
+        $before = $user->toArray();
         $user->update(['is_active' => !$user->is_active]);
+        $after = $user->fresh()->toArray();
 
-        AuditLogService::log('User', 'UPDATE', (string) $id, null, null);
+        AuditLogService::log('USER', 'TOGGLE_ACTIVE', $id, $before, $after);
 
         return back()->with('success', 'Status user berhasil diubah.');
     }

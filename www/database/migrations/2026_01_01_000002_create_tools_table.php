@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('deskripsi');
             $table->integer('stok_total');
             $table->integer('stok_tersedia');
-            $table->enum('status_alat', ['Tersedia', 'Dipinjam', 'Rusak', 'Dalam Perbaikan']);
+            $table->enum('status_alat', ['TERSEDIA', 'MAINTENANCE', 'RUSAK']);
             $table->string('lokasi', 50);
             $table->string('foto_alat', 255)->nullable();
             $table->timestamps();

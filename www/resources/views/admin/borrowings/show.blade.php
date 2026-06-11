@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Detail Peminjaman')
 @section('subtitle', 'Informasi lengkap peminjaman #' . $borowing->id_borrowing)
+
 @section('header-actions')
 <a href="{{ route('admin.borrowings.index', ['tab' => request('back_tab', 'semua')]) }}" class="btn btn-sm btn-outline">&larr; Kembali</a>
 @endsection
@@ -13,7 +14,7 @@
             <div class="value">{{ $borowing->mahasiswa?->nama_lengkap }}</div>
         </div>
         <div class="detail-item">
-            <div class="label">NIM</div>
+            <div class="label">NIM / NUPTK</div>
             <div class="value">{{ $borowing->mahasiswa?->nim }}</div>
         </div>
         <div class="detail-item">
@@ -21,11 +22,11 @@
             <div class="value">
                 @php
                 $badgeClass = match($borowing->status) {
-                    'Menunggu' => 'badge-yellow',
-                    'Disetujui' => 'badge-blue',
-                    'Ditolak' => 'badge-red',
-                    'Dipinjam' => 'badge-purple',
-                    'Dikembalikan' => 'badge-green',
+                    'MENUNGGU' => 'badge-yellow',
+                    'DISETUJUI' => 'badge-blue',
+                    'DITOLAK' => 'badge-red',
+                    'DIPINJAM' => 'badge-purple',
+                    'DIKEMBALIKAN' => 'badge-green',
                     default => 'badge-gray',
                 };
                 @endphp
@@ -61,18 +62,17 @@
         @if($borowing->catatan_admin)
         <div class="detail-item" style="grid-column:1/-1">
             <div class="label">Catatan Admin</div>
-            <div class="value">{{ $borowing->catatan_admin }}</div>
+            <div class="value" style="color:#991B1B">{{ $borowing->catatan_admin }}</div>
         </div>
         @endif
         @if($borowing->tgl_pengembalian_aktual)
         <div class="detail-item">
-            <div class="label">Tanggal Pengembalian</div>
+            <div class="label">Tanggal Dikembalikan</div>
             <div class="value">{{ $borowing->tgl_pengembalian_aktual?->format('d/m/Y H:i') }}</div>
         </div>
         @endif
     </div>
-
-    @if($borowing->status === 'Menunggu')
+    @if($borowing->status === 'MENUNGGU')
     <hr class="divider">
     <div style="display:flex;gap:8px">
         <form method="POST" action="{{ route('admin.borrowings.approve', $borowing->id_borrowing) }}" style="display:inline" onsubmit="return confirmAction('Setujui peminjaman ini?')">
@@ -82,9 +82,9 @@
         <button class="btn btn-danger" onclick="showRejectModal({{ $borowing->id_borrowing }})">Tolak</button>
     </div>
     @endif
-    @if(in_array($borowing->status, ['Disetujui', 'Dipinjam']))
+    @if(in_array($borowing->status, ['DISETUJUI', 'DIPINJAM']))
     <hr class="divider">
-    <a href="{{ route('admin.borrowings.return', $borowing->id_borrowing) }}" class="btn" style="background:#6366F1">Catat Pengembalian</a>
+    <a href="{{ route('admin.borrowings.return', $borowing->id_borrowing) }}" class="btn" style="background:#8B5CF6">Catat Pengembalian</a>
     @endif
 </div>
 
@@ -112,9 +112,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5">
-                        <div class="empty-state">Tidak ada alat dalam peminjaman ini.</div>
-                    </td>
+                    <td colspan="5"><div class="empty-state">Tidak ada alat dalam peminjaman ini.</div></td>
                 </tr>
                 @endforelse
             </tbody>
@@ -124,7 +122,7 @@
 
 <div class="modal-overlay" id="rejectModal">
     <div class="modal">
-        <h2 style="font-size:16px;font-weight:600;margin:0 0 16px">Tolak Peminjaman</h2>
+        <h2>Tolak Peminjaman</h2>
         <form method="POST" action="" id="rejectForm">
             @csrf
             <div class="form-group">
@@ -139,15 +137,9 @@
     </div>
 </div>
 
-<style>
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:50; display:none; align-items:center; justify-content:center; padding:20px; }
-.modal-overlay.show { display:flex; }
-.modal { background:#fff; border-radius:12px; padding:24px; width:100%; max-width:480px; }
-</style>
-
 <script>
 function showRejectModal(id) {
-    document.getElementById('rejectForm').action = '/admin/borrowings/' + id + '/reject';
+    document.getElementById('rejectForm').action = '{{ url("admin/borrowings") }}/' + id + '/reject';
     document.getElementById('rejectModal').classList.add('show');
 }
 </script>

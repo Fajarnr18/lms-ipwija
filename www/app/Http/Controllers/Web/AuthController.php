@@ -27,27 +27,19 @@ class AuthController extends Controller
 
         $input = $request->email;
 
-        if (str_contains($input, '@')) {
-            $user = User::where('email', $input)->first();
-        } elseif (preg_match('/^\d{16}$/', $input)) {
-            $user = User::where('nim', $input)->first();
-        } elseif (preg_match('/^\d{12}$/', $input)) {
-            $user = User::where('nim', $input)->first();
-        } else {
-            $user = User::where('email', $input)
-                ->orWhere('nim', $input)
-                ->first();
-        }
+        $user = User::where('email', $input)
+            ->orWhere('nim', $input)
+            ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return back()->withErrors([
-                'email' => 'Kredensial yang diberikan tidak valid.',
+                'email' => 'Email atau NIM/NUPTK atau password salah',
             ])->onlyInput('email');
         }
 
         if (!$user->is_active) {
             return back()->withErrors([
-                'email' => 'Akun Anda telah dinonaktifkan.',
+                'email' => 'Akun Anda telah dinonaktifkan',
             ])->onlyInput('email');
         }
 
@@ -70,51 +62,41 @@ class AuthController extends Controller
     public function register(Request $request): RedirectResponse
     {
         $request->validate([
-            'nama_lengkap' => 'required|string|max:255|regex:/^[A-Za-z\s]+$/',
-            'nim' => ['required', 'string', 'regex:/^([0-9]{12}|[0-9]{16})$/'],
-            'email' => 'required|string|email|max:255|unique:users,email',
+            'nama_lengkap' => 'required|string|max:255',
+            'nim_nip' => 'required|string',
+            'email' => 'required|string|email|max:255',
+            'program_studi' => 'required|string|max:255',
             'password' => 'required|string|min:8',
             'konfirmasi_password' => 'required|string|same:password',
-            'program_studi' => 'required|string|max:255',
         ], [
-            'password.min' => 'Password minimal 8 karakter.',
-            'konfirmasi_password.same' => 'Password dan konfirmasi password tidak cocok.',
-            'nim.regex' => 'Harus 12 digit (NIM) atau 16 digit (NUPTK) angka.',
-            'email.unique' => 'Email sudah terdaftar.',
-            'email.email' => 'Format email tidak valid.',
-            'nama_lengkap.regex' => 'Nama lengkap hanya boleh mengandung huruf.',
+            'password.min' => 'Password minimal 8 karakter',
+            'konfirmasi_password.same' => 'Konfirmasi password tidak sama',
+            'email.email' => 'Format email tidak valid',
         ]);
 
-        $input = $request->nim;
+        $nim = $request->nim_nip;
 
-        $existing = User::where('nim', $input)->first();
-        if ($existing) {
-            return back()->withErrors(['nim' => 'NIM/NUPTK sudah terdaftar.'])->onlyInput('nim');
+        $existingByNim = User::where('nim', $nim)->first();
+        if ($existingByNim) {
+            return back()->withErrors(['nim_nip' => 'NIM/NUPTK sudah digunakan'])->onlyInput('nim_nip');
         }
 
-        if (preg_match('/^\d{16}$/', $input)) {
-            $userData = [
-                'nama_lengkap' => $request->nama_lengkap,
-                'nim' => $input,
-                'email' => $request->email,
-                'program_studi' => $request->program_studi,
-                'password' => $request->password,
-                'role' => 'dosen',
-                'is_active' => true,
-            ];
-        } else {
-            $userData = [
-                'nama_lengkap' => $request->nama_lengkap,
-                'nim' => $input,
-                'email' => $request->email,
-                'program_studi' => $request->program_studi,
-                'password' => $request->password,
-                'role' => 'mahasiswa',
-                'is_active' => true,
-            ];
+        $existingByEmail = User::where('email', $request->email)->first();
+        if ($existingByEmail) {
+            return back()->withErrors(['email' => 'Email sudah digunakan'])->onlyInput('email');
         }
 
-        $user = User::create($userData);
+        $role = preg_match('/^\d{16}$/', $nim) ? 'dosen' : 'mahasiswa';
+
+        $user = User::create([
+            'nama_lengkap' => $request->nama_lengkap,
+            'nim' => $nim,
+            'email' => $request->email,
+            'program_studi' => $request->program_studi,
+            'password' => Hash::make($request->password, ['rounds' => 10]),
+            'role' => $role,
+            'is_active' => true,
+        ]);
 
         AuditLogService::log('User', 'CREATE', $user->id, null, $user->toArray());
 

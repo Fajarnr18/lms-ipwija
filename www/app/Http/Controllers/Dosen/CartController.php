@@ -20,72 +20,48 @@ class CartController extends Controller
     {
         $cart = session()->get('cart', []);
         $tools = Tool::whereIn('id_alat', array_keys($cart))->get();
-        return view('dosen.cart.index', compact('cart', 'tools'));
+        return view('dosen.keranjang.index', compact('cart', 'tools'));
     }
 
-    public function add(Request $request): RedirectResponse
+    public function tambah(int $id_alat): RedirectResponse
     {
-        $request->validate([
-            'id_alat' => 'required|integer|exists:tools,id_alat',
-            'jumlah' => 'required|integer|min:1',
-        ]);
+        $tool = Tool::findOrFail($id_alat);
 
-        $tool = Tool::findOrFail($request->id_alat);
-
-        if ($tool->status_alat !== 'Tersedia' || $tool->stok_tersedia < 1) {
+        if ($tool->status_alat !== 'TERSEDIA' || $tool->stok_tersedia < 1) {
             return back()->with('error', 'Alat tidak tersedia.');
         }
 
-        if ($request->jumlah > $tool->stok_tersedia) {
+        $cart = session()->get('cart', []);
+
+        $currentQty = isset($cart[$id_alat]) ? $cart[$id_alat]['jumlah_unit'] : 0;
+
+        if (($currentQty + 1) > $tool->stok_tersedia) {
             return back()->with('error', "Stok tersedia hanya {$tool->stok_tersedia}.");
         }
 
-        $cart = session()->get('cart', []);
         $cart[$tool->id_alat] = [
             'tool_id' => $tool->id_alat,
             'nama_alat' => $tool->nama_alat,
             'kode_alat' => $tool->kode_alat,
-            'jumlah_unit' => min($request->jumlah, $tool->stok_tersedia),
+            'jumlah_unit' => $currentQty + 1,
             'stok_tersedia' => $tool->stok_tersedia,
         ];
-        session()->put('cart', $cart);
-
-        return redirect()->route('dosen.cart')->with('success', 'Alat ditambahkan ke keranjang.');
-    }
-
-    public function update(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'id_alat' => 'required|integer',
-            'jumlah' => 'required|integer|min:0',
-        ]);
-
-        $cart = session()->get('cart', []);
-
-        if ($request->jumlah == 0) {
-            unset($cart[$request->id_alat]);
-        } else {
-            $tool = Tool::find($request->id_alat);
-            if ($tool && $request->jumlah <= $tool->stok_tersedia) {
-                $cart[$request->id_alat]['jumlah_unit'] = $request->jumlah;
-            } else {
-                return back()->with('error', 'Jumlah melebihi stok tersedia.');
-            }
-        }
 
         session()->put('cart', $cart);
-        return back()->with('success', 'Keranjang diperbarui.');
+
+        return redirect()->route('dosen.keranjang.index')->with('success', 'Alat ditambahkan ke keranjang.');
     }
 
-    public function remove(int $id): RedirectResponse
+    public function hapus(int $id): RedirectResponse
     {
         $cart = session()->get('cart', []);
         unset($cart[$id]);
         session()->put('cart', $cart);
+
         return back()->with('success', 'Alat dihapus dari keranjang.');
     }
 
-    public function submit(Request $request): RedirectResponse
+    public function ajukan(Request $request): RedirectResponse
     {
         $request->validate([
             'tgl_rencana_pinjam' => 'required|date|after_or_equal:today',
@@ -102,7 +78,7 @@ class CartController extends Controller
         try {
             DB::transaction(function () use ($request, $cart) {
                 $activeCount = Borowing::where('mahasiswa_id', auth()->id())
-                    ->whereIn('status', ['Disetujui', 'Dipinjam'])
+                    ->whereIn('status', ['DISETUJUI', 'DIPINJAM'])
                     ->count();
 
                 if ($activeCount > 0) {
@@ -122,7 +98,7 @@ class CartController extends Controller
                     'tgl_rencana_pinjam' => $request->tgl_rencana_pinjam,
                     'tgl_rencana_kembali' => $request->tgl_rencana_kembali,
                     'keperluan' => $request->keperluan,
-                    'status' => 'Menunggu',
+                    'status' => 'MENUNGGU',
                 ]);
 
                 foreach ($cart as $item) {
@@ -138,11 +114,15 @@ class CartController extends Controller
 
                 session()->forget('cart');
 
-                N8NWebhookService::send('borrowing.submitted', $borowing);
-                AuditLogService::log('Peminjaman', 'CREATE', $borowing->id_borrowing, null, $borowing->toArray());
+                N8NWebhookService::send('submitted', [
+                    'borrowingId' => $borowing->id_borrowing,
+                    'userName' => auth()->user()->nama_lengkap,
+                    'email' => auth()->user()->email,
+                ]);
+                AuditLogService::log('PEMINJAMAN', 'CREATE', $borowing->id_borrowing, null, $borowing->toArray());
             });
 
-            return redirect()->route('dosen.borrowings.index')
+            return redirect()->route('dosen.peminjaman.index')
                 ->with('success', 'Peminjaman berhasil diajukan.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());

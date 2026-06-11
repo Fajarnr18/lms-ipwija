@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 class N8NWebhookService
 {
-    public static function send(string $event, $data): void
+    public static function send(string $event, array $payload): void
     {
         $webhookUrl = config('services.n8n.webhook_url');
 
@@ -17,11 +17,11 @@ class N8NWebhookService
         try {
             Http::timeout(5)->post($webhookUrl, [
                 'event' => $event,
-                'data' => method_exists($data, 'toArray') ? $data->toArray() : $data,
+                ...$payload,
                 'timestamp' => now()->toIso8601String(),
             ]);
         } catch (\Throwable $e) {
-            // silently fail
+            logger()->error('[N8N Webhook] Failed: ' . $e->getMessage());
         }
     }
 }

@@ -11,7 +11,7 @@ class CatalogController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Tool::tersedia();
+        $query = Tool::query();
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -25,9 +25,13 @@ class CatalogController extends Controller
             $query->where('kategori', $request->kategori);
         }
 
-        $tools = $query->orderBy('nama_alat')->paginate(12);
-        $kategoris = Tool::tersedia()->select('kategori')->distinct()->pluck('kategori');
+        if ($request->status_alat) {
+            $query->where('status_alat', $request->status_alat);
+        }
 
-        return view('dosen.catalog.index', compact('tools', 'kategoris'));
+        $tools = $query->orderBy('nama_alat')->paginate(12);
+        $kategoris = Tool::select('kategori')->distinct()->pluck('kategori');
+
+        return view('dosen.katalog.index', compact('tools', 'kategoris'));
     }
 }
