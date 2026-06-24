@@ -147,10 +147,12 @@
 
 .detail-foto {
     width: 100%;
-    aspect-ratio: 1/1;
+    max-width: 400px;
+    aspect-ratio: 4/3;
     border-radius: 10px;
     overflow: hidden;
     background: #F9FAFB;
+    margin: 0 auto;
 }
 .detail-foto img {
     width: 100%;
