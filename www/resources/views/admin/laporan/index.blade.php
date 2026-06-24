@@ -14,7 +14,17 @@
 
 <div class="card" style="margin-bottom:16px">
     <form method="GET" action="{{ route('admin.laporan.index') }}" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end">
-        <input type="hidden" name="tab" value="{{ request('tab', 'rekap-peminjaman') }}">
+        <div class="toolbar-item">
+            <label>Jenis Laporan</label>
+            <select name="tab" onchange="this.form.submit()">
+                <option value="rekap-peminjaman" @selected(request('tab', 'rekap-peminjaman')==='rekap-peminjaman')>Rekap Peminjaman</option>
+                <option value="alat-sering-dipinjam" @selected(request('tab')==='alat-sering-dipinjam')>Alat Sering Dipinjam</option>
+                <option value="inventaris-barang" @selected(request('tab')==='inventaris-barang')>Inventaris Barang</option>
+                <option value="log-mutasi-stok" @selected(request('tab')==='log-mutasi-stok')>Log Mutasi Stok</option>
+                <option value="alat-dipinjam" @selected(request('tab')==='alat-dipinjam')>Alat Sedang Dipinjam</option>
+                <option value="rekap-per-mahasiswa" @selected(request('tab')==='rekap-per-mahasiswa')>Rekap per Mahasiswa</option>
+            </select>
+        </div>
         <div class="toolbar-item">
             <label>Tanggal Mulai</label>
             <input type="date" name="from" value="{{ request('from') }}">
