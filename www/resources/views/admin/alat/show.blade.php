@@ -4,22 +4,25 @@
 
 @section('header-actions')
 <a href="{{ route('admin.alat.index') }}" class="btn btn-sm btn-outline">&larr; Kembali</a>
+<a href="{{ route('admin.alat.edit', $tool->id_alat) }}" class="btn btn-sm btn-info" style="margin-left:8px">Edit Alat</a>
 @endsection
 
 @section('content')
 <div class="detail-layout">
     <div class="detail-left">
-        <div class="card">
-            <form method="GET" action="{{ route('admin.alat.show', $tool->id_alat) }}" style="margin-bottom:0">
-                <div class="search-box" style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+        <form method="GET" action="{{ route('admin.alat.show', $tool->id_alat) }}">
+            <div class="card" style="padding:12px 16px">
+                <div class="search-box" style="display:flex;gap:8px;align-items:center">
                     <svg width="16" height="16" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari peminjaman..." style="border:none;outline:none;flex:1;font-size:13px;background:transparent">
                     @if(request('search'))
                     <a href="{{ route('admin.alat.show', $tool->id_alat) }}" style="color:#9CA3AF;font-size:12px;text-decoration:none">&times;</a>
                     @endif
                 </div>
-            </form>
+            </div>
+        </form>
 
+        <div class="card">
             @if($tool->foto_alat)
             <div class="detail-foto">
                 <img src="{{ asset('storage/' . $tool->foto_alat) }}" alt="Foto {{ $tool->nama_alat }}">
@@ -29,7 +32,9 @@
                 <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
             @endif
+        </div>
 
+        <div class="card">
             <div class="detail-nama">{{ $tool->nama_alat }}</div>
             <div class="detail-kode">ID: #{{ $tool->id_alat }} / {{ $tool->kode_alat }}</div>
 
@@ -146,7 +151,6 @@
     border-radius: 10px;
     overflow: hidden;
     background: #F9FAFB;
-    margin-bottom: 16px;
 }
 .detail-foto img {
     width: 100%;
@@ -238,7 +242,7 @@
 
 .detail-actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     margin-top: 20px;
     gap: 12px;
