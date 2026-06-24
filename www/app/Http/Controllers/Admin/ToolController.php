@@ -40,13 +40,25 @@ class ToolController extends Controller
         ));
     }
 
-    public function show(int $id_alat): View
+    public function show(Request $request, int $id_alat): View
     {
         $tool = Tool::withTrashed()->findOrFail($id_alat);
 
-        $borrowings = Borowing::whereHas('borrowingItems', function ($q) use ($id_alat) {
+        $query = Borowing::whereHas('borrowingItems', function ($q) use ($id_alat) {
             $q->where('tool_id', $id_alat);
-        })->with('mahasiswa')->orderBy('created_at', 'desc')->paginate(10);
+        })->with('mahasiswa');
+
+        if ($search = $request->search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id_borrowing', 'like', "%{$search}%")
+                  ->orWhereHas('mahasiswa', function ($q) use ($search) {
+                      $q->where('nama_lengkap', 'like', "%{$search}%")
+                        ->orWhere('nim', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $borrowings = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return view('admin.alat.show', compact('tool', 'borrowings'));
     }
