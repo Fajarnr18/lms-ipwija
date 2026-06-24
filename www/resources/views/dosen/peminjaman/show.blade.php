@@ -13,7 +13,8 @@
             <div class="label">Status</div>
             <div class="value">
                 @php
-                $badgeClass = match($borowing->status) {
+                $st = strtoupper(trim($borowing->status ?? ''));
+                $badgeClass = match($st) {
                     'MENUNGGU' => 'badge-yellow',
                     'DISETUJUI' => 'badge-blue',
                     'DITOLAK' => 'badge-red',
@@ -21,8 +22,16 @@
                     'DIKEMBALIKAN' => 'badge-green',
                     default => 'badge-gray',
                 };
+                $statusLabel = match($st) {
+                    'MENUNGGU' => 'Menunggu',
+                    'DISETUJUI' => 'Disetujui',
+                    'DITOLAK' => 'Ditolak',
+                    'DIPINJAM' => 'Dipinjam',
+                    'DIKEMBALIKAN' => 'Dikembalikan',
+                    default => $borowing->status,
+                };
                 @endphp
-                <span class="badge {{ $badgeClass }}">{{ $borowing->status }}</span>
+                <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
             </div>
         </div>
         <div class="detail-item">

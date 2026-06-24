@@ -26,8 +26,8 @@ class Borowing extends Model
     {
         return [
             'tgl_pengajuan' => 'datetime',
-            'tgl_rencana_pinjam' => 'date:Y-m-d',
-            'tgl_rencana_kembali' => 'date:Y-m-d',
+            'tgl_rencana_pinjam' => 'datetime',
+            'tgl_rencana_kembali' => 'datetime',
             'tgl_diproses' => 'datetime',
             'tgl_pengembalian_aktual' => 'datetime',
         ];

@@ -32,6 +32,8 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
         .sidebar nav a:hover { background: rgba(255,255,255,.06); color: #fff; }
         .sidebar nav a.active { background: rgba(59,130,246,.2); color: #fff; }
         .sidebar nav a svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .sidebar nav a.sub-link { padding-left: 14px; font-size: 12px; }
+        .sidebar nav a.sub-link svg { width: 16px; height: 16px; }
         .sidebar .footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.06); }
         .sidebar .footer form { margin: 0; }
         .sidebar .footer button { display: flex; align-items: center; gap: 12px; padding: 12px 16px; width: 100%; border: 1px solid rgba(239,68,68,.3); border-radius: 10px; font-size: 14px; font-weight: 600; color: #fca5a5; background: rgba(239,68,68,.08); cursor: pointer; font-family: 'Inter', sans-serif; transition: all .2s; letter-spacing: .01em; }
@@ -50,10 +52,13 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
         .topbar .search-box input:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); background: #fff; }
         .topbar .user-area { display: flex; align-items: center; gap: 16px; margin-left: auto; }
         .topbar .user-info { display: flex; align-items: center; gap: 10px; padding-left: 16px; border-left: 1px solid #E5E7EB; }
-        .topbar .user-info .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #1E3A5F, #3B82F6); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 13px; }
-        .topbar .user-info .detail { text-align: right; }
+        .topbar .user-info .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #1E3A5F, #3B82F6); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+        .topbar .user-info .detail { text-align: left; }
         .topbar .user-info .name { font-size: 13px; font-weight: 600; color: #1A1A2E; line-height: 1.2; }
-        .topbar .user-info .role { font-size: 11px; color: #6B7280; }
+        .topbar .user-info .email { font-size: 11px; color: #6B7280; line-height: 1.2; margin-top: 1px; }
+        .topbar-cart-btn { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1.5px solid #3B82F6; border-radius: 8px; background: #EEF2FF; text-decoration: none; color: #3B82F6; font-size: 13px; font-weight: 500; font-family: 'Inter', sans-serif; transition: all .2s; flex-shrink: 0; }
+        .topbar-cart-btn:hover { background: #3B82F6; color: #fff; border-color: #3B82F6; }
+        .topbar-cart-count { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: #EF4444; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
         .content { flex: 1; padding: 24px; max-width: 1280px; width: 100%; margin: 0 auto; }
         .page-header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 24px; }
         @media(min-width:640px){ .page-header { flex-direction: row; align-items: center; justify-content: space-between; } }
@@ -159,9 +164,13 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 Inventaris Barang
             </a>
-            <a href="{{ route('admin.peminjaman.index') }}" class="{{ request()->routeIs('admin.peminjaman.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.peminjaman.index') }}" class="{{ request()->routeIs('admin.peminjaman.*') && !request()->routeIs('admin.peminjaman.aktif') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 Peminjaman
+            </a>
+            <a href="{{ route('admin.peminjaman.aktif') }}" class="sub-link {{ request()->routeIs('admin.peminjaman.aktif') || request()->routeIs('admin.peminjaman.kembali-form') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 6a5 5 0 1 1 0 10H6l5-5M6 16l5 5"/></svg>
+                Pengembalian
             </a>
             <div class="nav-label">Lainnya</div>
             <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
@@ -248,12 +257,27 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
                 <input type="text" placeholder="Cari sesuatu...">
             </div>
             <div class="user-area">
+                @if(!$isAdmin)
+                @php
+                $cartRoute = $isDosen ? 'dosen.keranjang.index' : 'keranjang.index';
+                $cartCount = collect(session('cart', []))->sum('jumlah');
+                @endphp
+                <a href="{{ route($cartRoute) }}" class="topbar-cart-btn">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+                    </svg>
+                    <span>Keranjang</span>
+                    @if($cartCount > 0)
+                    <span class="topbar-cart-count">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
+                    @endif
+                </a>
+                @endif
                 <div class="user-info">
+                    <div class="avatar">{{ strtoupper(substr($user?->nama_lengkap ?? 'U', 0, 1)) }}</div>
                     <div class="detail">
                         <div class="name">{{ $user?->nama_lengkap }}</div>
-                        <div class="role">{{ $roleLabel }}</div>
+                        <div class="email">{{ $user?->email }}</div>
                     </div>
-                    <div class="avatar">{{ strtoupper(substr($user?->nama_lengkap ?? 'U', 0, 1)) }}</div>
                 </div>
             </div>
         </header>

@@ -55,11 +55,14 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/peminjaman', [AdminBorrowingController::class, 'index'])->name('peminjaman.index');
         Route::get('/peminjaman/aktif', [AdminBorrowingController::class, 'aktif'])->name('peminjaman.aktif');
+        Route::get('/peminjaman/{borowing}/kembali', [AdminBorrowingController::class, 'formKembali'])->name('peminjaman.kembali-form');
         Route::get('/peminjaman/{borowing}', [AdminBorrowingController::class, 'show'])->name('peminjaman.show');
+        Route::post('/peminjaman/{borowing}/catatan', [AdminBorrowingController::class, 'updateCatatan'])->name('peminjaman.catatan');
         Route::post('/peminjaman/{borowing}/approve', [AdminBorrowingController::class, 'approve'])->name('peminjaman.approve');
         Route::post('/peminjaman/{borowing}/reject', [AdminBorrowingController::class, 'reject'])->name('peminjaman.reject');
         Route::post('/peminjaman/{borowing}/proses', [AdminBorrowingController::class, 'prosesPeminjaman'])->name('peminjaman.proses');
         Route::post('/peminjaman/{borowing}/kembali', [AdminBorrowingController::class, 'kembali'])->name('peminjaman.kembali');
+        Route::get('/peminjaman/export/csv', [AdminBorrowingController::class, 'exportCsv'])->name('peminjaman.export-csv');
 
         Route::get('/inventaris', [ItemController::class, 'index'])->name('inventaris.index');
         Route::get('/inventaris/tambah', [ItemController::class, 'create'])->name('inventaris.create');
@@ -82,6 +85,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [MhsDashboardController::class, 'index'])->name('mhs.dashboard');
 
         Route::get('/katalog', [CatalogController::class, 'index'])->name('katalog.index');
+        Route::get('/katalog/{id_alat}', [CatalogController::class, 'show'])->name('katalog.show');
 
         Route::get('/keranjang', [CartController::class, 'index'])->name('keranjang.index');
         Route::post('/keranjang/tambah/{id_alat}', [CartController::class, 'tambah'])->name('keranjang.tambah');
@@ -100,6 +104,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dosen/dashboard', [DosenDashboardController::class, 'index'])->name('dosen.dashboard');
 
         Route::get('/dosen/katalog', [DosenCatalogController::class, 'index'])->name('dosen.katalog.index');
+        Route::get('/dosen/katalog/{id_alat}', [DosenCatalogController::class, 'show'])->name('dosen.katalog.show');
 
         Route::get('/dosen/keranjang', [DosenCartController::class, 'index'])->name('dosen.keranjang.index');
         Route::post('/dosen/keranjang/tambah/{id_alat}', [DosenCartController::class, 'tambah'])->name('dosen.keranjang.tambah');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Borowing;
 use App\Models\BorrowingItem;
 use App\Models\Tool;
 use App\Services\AuditLogService;
@@ -42,7 +43,12 @@ class ToolController extends Controller
     public function show(int $id_alat): View
     {
         $tool = Tool::withTrashed()->findOrFail($id_alat);
-        return view('admin.alat.show', compact('tool'));
+
+        $borrowings = Borowing::whereHas('borrowingItems', function ($q) use ($id_alat) {
+            $q->where('tool_id', $id_alat);
+        })->with('mahasiswa')->orderBy('created_at', 'desc')->paginate(10);
+
+        return view('admin.alat.show', compact('tool', 'borrowings'));
     }
 
     public function create(): View
@@ -74,6 +80,10 @@ class ToolController extends Controller
         if ($request->hasFile('foto_alat')) {
             $path = $request->file('foto_alat')->store('alat', 'public');
             $validated['foto_alat'] = $path;
+        }
+
+        if ((int) $validated['stok_tersedia'] === 0) {
+            $validated['status_alat'] = 'MAINTENANCE';
         }
 
         $tool = Tool::create($validated);
@@ -115,16 +125,15 @@ class ToolController extends Controller
         ]);
 
         if ($request->hasFile('foto_alat')) {
-            $path = $request->file('foto_alat')->store('alat', 'public');
-            $validated['foto_alat'] = $path;
-        }
-
-        if ($request->hasFile('foto_alat')) {
             if ($tool->foto_alat) {
                 Storage::disk('public')->delete($tool->foto_alat);
             }
             $path = $request->file('foto_alat')->store('alat', 'public');
             $validated['foto_alat'] = $path;
+        }
+
+        if ((int) $validated['stok_tersedia'] === 0) {
+            $validated['status_alat'] = 'MAINTENANCE';
         }
 
         $tool->update($validated);

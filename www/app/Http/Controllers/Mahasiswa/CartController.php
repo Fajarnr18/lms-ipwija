@@ -23,7 +23,7 @@ class CartController extends Controller
         return view('mahasiswa.keranjang.index', compact('cart', 'tools'));
     }
 
-    public function tambah(int $id_alat): RedirectResponse
+    public function tambah(Request $request, int $id_alat): RedirectResponse
     {
         $tool = Tool::findOrFail($id_alat);
 
@@ -31,11 +31,13 @@ class CartController extends Controller
             return back()->with('error', 'Alat tidak tersedia.');
         }
 
+        $jumlah = max(1, $request->integer('jumlah', 1));
+
         $cart = session()->get('cart', []);
 
         $currentQty = isset($cart[$id_alat]) ? $cart[$id_alat]['jumlah_unit'] : 0;
 
-        if (($currentQty + 1) > $tool->stok_tersedia) {
+        if (($currentQty + $jumlah) > $tool->stok_tersedia) {
             return back()->with('error', "Stok tersedia hanya {$tool->stok_tersedia}.");
         }
 
@@ -43,13 +45,13 @@ class CartController extends Controller
             'tool_id' => $tool->id_alat,
             'nama_alat' => $tool->nama_alat,
             'kode_alat' => $tool->kode_alat,
-            'jumlah_unit' => $currentQty + 1,
+            'jumlah_unit' => $currentQty + $jumlah,
             'stok_tersedia' => $tool->stok_tersedia,
         ];
 
         session()->put('cart', $cart);
 
-        return redirect()->route('keranjang.index')->with('success', 'Alat ditambahkan ke keranjang.');
+        return redirect()->route('keranjang.index')->with('success', "$jumlah alat ditambahkan ke keranjang.");
     }
 
     public function hapus(int $id): RedirectResponse
@@ -67,6 +69,8 @@ class CartController extends Controller
             'tgl_rencana_pinjam' => 'required|date|after_or_equal:today',
             'tgl_rencana_kembali' => 'required|date|after:tgl_rencana_pinjam',
             'keperluan' => 'required|string',
+            'kuantitas' => 'nullable|array',
+            'kuantitas.*' => 'integer|min:1',
         ]);
 
         $cart = session()->get('cart', []);
@@ -74,6 +78,14 @@ class CartController extends Controller
         if (empty($cart)) {
             return back()->with('error', 'Keranjang kosong.');
         }
+
+        foreach ($request->input('kuantitas', []) as $id => $qty) {
+            if (isset($cart[$id])) {
+                $cart[$id]['jumlah_unit'] = (int) $qty;
+            }
+        }
+
+        session()->put('cart', $cart);
 
         try {
             DB::transaction(function () use ($request, $cart) {
@@ -110,6 +122,11 @@ class CartController extends Controller
 
                     Tool::where('id_alat', $item['tool_id'])
                         ->decrement('stok_tersedia', $item['jumlah_unit']);
+
+                    $t = Tool::find($item['tool_id']);
+                    if ($t && $t->stok_tersedia == 0) {
+                        $t->update(['status_alat' => 'MAINTENANCE']);
+                    }
                 }
 
                 session()->forget('cart');

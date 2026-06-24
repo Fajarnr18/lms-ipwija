@@ -18,6 +18,17 @@ class Tool extends Model
 
     protected $primaryKey = 'id_alat';
 
+    protected static function booted(): void
+    {
+        static::saving(function (Tool $tool) {
+            if ($tool->stok_tersedia <= 0 && $tool->status_alat === 'TERSEDIA') {
+                $tool->status_alat = 'MAINTENANCE';
+            } elseif ($tool->stok_tersedia > 0 && $tool->status_alat === 'MAINTENANCE') {
+                $tool->status_alat = 'TERSEDIA';
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [

@@ -41,7 +41,8 @@
                     <td>{{ $b->tgl_pengembalian_aktual?->format('d/m/Y') ?? '-' }}</td>
                     <td>
                         @php
-                        $badgeClass = match($b->status) {
+                        $st = strtoupper(trim($b->status ?? ''));
+                        $badgeClass = match($st) {
                             'MENUNGGU' => 'badge-yellow',
                             'DISETUJUI' => 'badge-blue',
                             'DITOLAK' => 'badge-red',
@@ -49,8 +50,16 @@
                             'DIKEMBALIKAN' => 'badge-green',
                             default => 'badge-gray',
                         };
+                        $statusLabel = match($st) {
+                            'MENUNGGU' => 'Menunggu',
+                            'DISETUJUI' => 'Disetujui',
+                            'DITOLAK' => 'Ditolak',
+                            'DIPINJAM' => 'Dipinjam',
+                            'DIKEMBALIKAN' => 'Dikembalikan',
+                            default => $b->status,
+                        };
                         @endphp
-                        <span class="badge {{ $badgeClass }}">{{ $b->status }}</span>
+                        <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
                     </td>
                     <td style="text-align:center">
                         <a href="{{ route('peminjaman.detail', $b->id_borrowing) }}" class="btn btn-sm btn-outline">Detail</a>

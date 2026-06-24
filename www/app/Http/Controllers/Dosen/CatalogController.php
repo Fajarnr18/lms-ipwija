@@ -29,9 +29,15 @@ class CatalogController extends Controller
             $query->where('status_alat', $request->status_alat);
         }
 
-        $tools = $query->orderBy('nama_alat')->paginate(12);
+        $tools = $query->where('status_alat', 'TERSEDIA')->where('stok_tersedia', '>', 0)->orderBy('nama_alat')->paginate(12);
         $kategoris = Tool::select('kategori')->distinct()->pluck('kategori');
 
         return view('dosen.katalog.index', compact('tools', 'kategoris'));
+    }
+
+    public function show(int $id_alat): View
+    {
+        $tool = Tool::findOrFail($id_alat);
+        return view('dosen.katalog.show', compact('tool'));
     }
 }
