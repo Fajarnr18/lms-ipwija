@@ -246,43 +246,45 @@ class BorrowingController extends Controller
         return redirect()->back()->with('success', 'Peminjaman sedang diproses.');
     }
 
-   public function aktif(Request $request): View
-{
-    $query = Borowing::with(['mahasiswa', 'borrowingItems.tool'])
-        ->whereIn('status', ['DISETUJUI', 'DIPINJAM', 'DIKEMBALIKAN']);
+    public function aktif(Request $request): View
+    {
+        $query = Borowing::with(['mahasiswa', 'borrowingItems.tool'])
+            ->whereIn('status', ['DISETUJUI', 'DIPINJAM', 'DIKEMBALIKAN']);
 
-    if ($search = $request->search) {
-        $query->where(function ($q) use ($search) {
-            $q->where('id_borrowing', 'like', "%{$search}%")
-              ->orWhereHas('mahasiswa', function ($q) use ($search) {
-                  $q->where('nama_lengkap', 'like', "%{$search}%")
-                    ->orWhere('nim', 'like', "%{$search}%");
-              });
-        });
+        if ($search = $request->search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id_borrowing', 'like', "%{$search}%")
+                  ->orWhereHas('mahasiswa', function ($q) use ($search) {
+                      $q->where('nama_lengkap', 'like', "%{$search}%")
+                        ->orWhere('nim', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $borrowings = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        $totalHariIni = Borowing::where('status', 'DIKEMBALIKAN')
+            ->whereDate('tgl_pengembalian_aktual', today())
+            ->count();
+
+        $menungguVerifikasi = Borowing::where('status', 'DIPINJAM')->count();
+
+        $alatRusak = BorrowingItem::whereIn('kondisi_saat_kembali', ['Rusak Ringan', 'Rusak Berat'])
+            ->whereHas('borowing', function ($q) {
+                $q->where('status', 'DIKEMBALIKAN');
+            })
+            ->count();
+
+        return view('admin.peminjaman.aktif', compact('borrowings', 'totalHariIni', 'menungguVerifikasi', 'alatRusak'));
     }
 
-    $borrowings = $query->orderBy('created_at', 'desc')->paginate(10);
-
-    $totalHariIni = Borowing::where('status', 'DIKEMBALIKAN')
-        ->whereDate('tgl_pengembalian_aktual', today())
-        ->count();
-
-    $menungguVerifikasi = Borowing::where('status', 'DIPINJAM')->count();
-
-    $alatRusak = BorrowingItem::whereIn('kondisi_saat_kembali', ['Rusak Ringan', 'Rusak Berat'])
-        ->whereHas('borowing', function ($q) {
-            $q->where('status', 'DIKEMBALIKAN');
-        })
-        ->count();
-
-    return view('admin.peminjaman.aktif', compact('borrowings', 'totalHariIni', 'menungguVerifikasi', 'alatRusak'));
-}
-public function formKembali(Borowing $borowing): View
+    public function formKembali(Borowing $borowing): View
     {
         $borowing->load(['mahasiswa', 'prosesOleh', 'borrowingItems.tool']);
 
         return view('admin.peminjaman.kembali', compact('borowing'));
     }
+
     public function kembali(Request $request, Borowing $borowing): RedirectResponse
     {
         $request->validate([

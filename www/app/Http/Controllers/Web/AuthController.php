@@ -63,7 +63,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'nama_lengkap' => 'required|string|max:255',
-            'nim_nip' => 'required|string',
+            'nim' => 'required|string',
             'email' => 'required|string|email|max:255',
             'program_studi' => 'required|string|max:255',
             'password' => 'required|string|min:8',
@@ -74,11 +74,11 @@ class AuthController extends Controller
             'email.email' => 'Format email tidak valid',
         ]);
 
-        $nim = $request->nim_nip;
+        $nim = $request->nim;
 
         $existingByNim = User::where('nim', $nim)->first();
         if ($existingByNim) {
-            return back()->withErrors(['nim_nip' => 'NIM/NUPTK sudah digunakan'])->onlyInput('nim_nip');
+            return back()->withErrors(['nim' => 'NIM/NUPTK sudah digunakan'])->onlyInput('nim');
         }
 
         $existingByEmail = User::where('email', $request->email)->first();

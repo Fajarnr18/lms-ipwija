@@ -112,6 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/dosen/keranjang/ajukan', [DosenCartController::class, 'ajukan'])->name('dosen.keranjang.ajukan');
 
         Route::get('/dosen/peminjaman', [DosenBorrowingController::class, 'index'])->name('dosen.peminjaman.index');
+        Route::get('/dosen/peminjaman/riwayat', [DosenBorrowingController::class, 'riwayat'])->name('dosen.peminjaman.riwayat');
         Route::get('/dosen/peminjaman/{id}', [DosenBorrowingController::class, 'show'])->name('dosen.peminjaman.detail');
 
         Route::get('/dosen/profil', [DosenProfileController::class, 'index'])->name('dosen.profil.index');

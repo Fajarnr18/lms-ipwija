@@ -31,4 +31,18 @@ class BorrowingController extends Controller
 
         return view('dosen.peminjaman.show', compact('borowing'));
     }
+
+    public function riwayat(Request $request): View
+    {
+        $query = Borowing::where('mahasiswa_id', auth()->id())
+            ->with(['borrowingItems.tool']);
+
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        $borrowings = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        return view('dosen.peminjaman.riwayat', compact('borrowings'));
+    }
 }
