@@ -73,7 +73,8 @@
                     <td>{{ Str::limit($b->keperluan, 40) }}</td>
                     <td>
                         @php
-                        $badgeClass = match($b->status) {
+                        $st = strtoupper(trim($b->status ?? ''));
+                        $badgeClass = match($st) {
                             'MENUNGGU' => 'badge-yellow',
                             'DISETUJUI' => 'badge-blue',
                             'DITOLAK' => 'badge-red',
@@ -81,8 +82,16 @@
                             'DIKEMBALIKAN' => 'badge-green',
                             default => 'badge-gray',
                         };
+                        $statusLabel = match($st) {
+                            'MENUNGGU' => 'Menunggu',
+                            'DISETUJUI' => 'Disetujui',
+                            'DITOLAK' => 'Ditolak',
+                            'DIPINJAM' => 'Dipinjam',
+                            'DIKEMBALIKAN' => 'Dikembalikan',
+                            default => $b->status,
+                        };
                         @endphp
-                        <span class="badge {{ $badgeClass }}">{{ $b->status }}</span>
+                        <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
                     </td>
                     <td>{{ $b->borrowingItems->count() }} alat</td>
                 </tr>
@@ -171,13 +180,19 @@
                     <td>{{ $b->tgl_rencana_kembali?->format('d/m/Y') }}</td>
                     <td>
                         @php
-                        $badgeClass = match($b->status) {
+                        $st = strtoupper(trim($b->status ?? ''));
+                        $badgeClass = match($st) {
                             'DIPINJAM' => 'badge-purple',
                             'DISETUJUI' => 'badge-blue',
                             default => 'badge-gray',
                         };
+                        $statusLabel = match($st) {
+                            'DIPINJAM' => 'Dipinjam',
+                            'DISETUJUI' => 'Disetujui',
+                            default => $b->status,
+                        };
                         @endphp
-                        <span class="badge {{ $badgeClass }}">{{ $b->status }}</span>
+                        <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
                     </td>
                     <td>{{ $b->borrowingItems->count() }} item</td>
                 </tr>

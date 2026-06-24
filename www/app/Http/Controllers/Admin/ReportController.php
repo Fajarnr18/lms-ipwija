@@ -27,6 +27,7 @@ class ReportController extends Controller
             $query = Borowing::with(['mahasiswa', 'borrowingItems.tool', 'prosesOleh']);
             if ($from) $query->whereDate('tgl_pengajuan', '>=', $from);
             if ($to) $query->whereDate('tgl_pengajuan', '<=', $to);
+            if ($request->status) $query->where('status', $request->status);
             $data['borrowings'] = $query->orderBy('tgl_pengajuan', 'desc')->get();
         }
 
