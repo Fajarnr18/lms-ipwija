@@ -26,12 +26,33 @@ $totalUnit = $borowing->borrowingItems->sum('jumlah_unit');
         {{-- LEFT: Informasi Peminjam --}}
         <div class="card" style="padding:24px">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-                <div style="width:38px;height:38px;border-radius:10px;background:#F5F3FF;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                    <svg width="18" height="18" fill="none" stroke="#8B5CF6" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
+                <div style="display:flex;align-items:center;gap:10px;flex:1">
+                    <div style="width:38px;height:38px;border-radius:10px;background:#F5F3FF;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <svg width="18" height="18" fill="none" stroke="#8B5CF6" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                    <h2 style="font-size:16px;font-weight:700;color:#1A1A2E;margin:0">Informasi Peminjam</h2>
                 </div>
-                <h2 style="font-size:16px;font-weight:700;color:#1A1A2E;margin:0">Informasi Peminjam</h2>
+                @php
+                $badgeClass = match($st) {
+                    'MENUNGGU' => 'badge-yellow',
+                    'DISETUJUI' => 'badge-blue',
+                    'DITOLAK' => 'badge-red',
+                    'DIPINJAM' => 'badge-purple',
+                    'DIKEMBALIKAN' => 'badge-green',
+                    default => 'badge-gray',
+                };
+                $statusLabel = match($st) {
+                    'MENUNGGU' => 'Menunggu',
+                    'DISETUJUI' => 'Disetujui',
+                    'DITOLAK' => 'Ditolak',
+                    'DIPINJAM' => 'Dipinjam',
+                    'DIKEMBALIKAN' => 'Dikembalikan',
+                    default => $borowing->status,
+                };
+                @endphp
+                <span class="badge {{ $badgeClass }}" style="font-size:13px;padding:6px 14px">{{ $statusLabel }}</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:16px">
                 <div>
@@ -103,34 +124,32 @@ $totalUnit = $borowing->borrowingItems->sum('jumlah_unit');
                 </div>
             </div>
             <div style="overflow-x:auto">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:40px">No</th>
-                            <th>Kode</th>
-                            <th>Nama Alat</th>
-                            <th style="text-align:center">Jumlah</th>
-                            <th>Kondisi Kembali</th>
-                            <th>Catatan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($borowing->borrowingItems as $item)
-                        <tr>
-                            <td style="text-align:center;font-weight:600">{{ $loop->iteration }}</td>
-                            <td>{{ $item->tool?->kode_alat }}</td>
-                            <td>{{ $item->tool?->nama_alat }}</td>
-                            <td style="text-align:center;font-weight:600">{{ $item->jumlah_unit }}</td>
-                            <td>{{ $item->kondisi_saat_kembali ?? '-' }}</td>
-                            <td>{{ $item->catatan_pengembalian ?? '-' }}</td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6"><div class="empty-state">Tidak ada alat dalam peminjaman ini.</div></td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:40px">No</th>
+                                <th>Kode</th>
+                                <th>Nama Alat</th>
+                                <th style="text-align:center">Jumlah</th>
+                                <th>Kondisi Kembali</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($borowing->borrowingItems as $item)
+                            <tr>
+                                <td style="text-align:center;font-weight:600">{{ $loop->iteration }}</td>
+                                <td>{{ $item->tool?->kode_alat }}</td>
+                                <td>{{ $item->tool?->nama_alat }}</td>
+                                <td style="text-align:center;font-weight:600">{{ $item->jumlah_unit }}</td>
+                                <td>{{ $item->kondisi_saat_kembali ?? '-' }}</td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5"><div class="empty-state">Tidak ada alat dalam peminjaman ini.</div></td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
             </div>
             <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #E5E7EB">
                 <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#6B7280">Total Keseluruhan</span>
@@ -155,6 +174,7 @@ $totalUnit = $borowing->borrowingItems->sum('jumlah_unit');
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                     Kembali
                 </a>
+                @if($st === 'MENUNGGU')
                 <form method="POST" action="{{ route('admin.peminjaman.approve', $borowing->id_borrowing) }}" style="display:inline-flex" onsubmit="return confirmAction('Setujui peminjaman ini?')">
                     @csrf
                     <button class="btn btn-success" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap">
@@ -166,6 +186,7 @@ $totalUnit = $borowing->borrowingItems->sum('jumlah_unit');
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     Reject
                 </button>
+                @endif
                 @if($st === 'DISETUJUI')
                 <form method="POST" action="{{ route('admin.peminjaman.proses', $borowing->id_borrowing) }}" style="display:inline-flex" onsubmit="return confirmAction('Proses peminjaman ini? Status akan berubah menjadi Dipinjam.')">
                     @csrf
