@@ -3,15 +3,6 @@
 @section('subtitle', 'Export data laboratorium')
 
 @section('content')
-<div class="tabs">
-    <a href="{{ route('admin.laporan.index', ['tab' => 'rekap-peminjaman']) }}" class="{{ request('tab', 'rekap-peminjaman') === 'rekap-peminjaman' ? 'active' : '' }}">Rekap Peminjaman</a>
-    <a href="{{ route('admin.laporan.index', ['tab' => 'alat-sering-dipinjam']) }}" class="{{ request('tab') === 'alat-sering-dipinjam' ? 'active' : '' }}">Alat Sering Dipinjam</a>
-    <a href="{{ route('admin.laporan.index', ['tab' => 'inventaris-barang']) }}" class="{{ request('tab') === 'inventaris-barang' ? 'active' : '' }}">Inventaris Barang</a>
-    <a href="{{ route('admin.laporan.index', ['tab' => 'log-mutasi-stok']) }}" class="{{ request('tab') === 'log-mutasi-stok' ? 'active' : '' }}">Log Mutasi Stok</a>
-    <a href="{{ route('admin.laporan.index', ['tab' => 'alat-dipinjam']) }}" class="{{ request('tab') === 'alat-dipinjam' ? 'active' : '' }}">Alat Sedang Dipinjam</a>
-    <a href="{{ route('admin.laporan.index', ['tab' => 'rekap-per-mahasiswa']) }}" class="{{ request('tab') === 'rekap-per-mahasiswa' ? 'active' : '' }}">Rekap per Mahasiswa</a>
-</div>
-
 <div class="card" style="margin-bottom:16px">
     <form method="GET" action="{{ route('admin.laporan.index') }}" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end">
         <div class="toolbar-item">
