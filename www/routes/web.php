@@ -18,7 +18,13 @@ use App\Http\Controllers\Mahasiswa\CatalogController;
 use App\Http\Controllers\Mahasiswa\DashboardController as MhsDashboardController;
 use App\Http\Controllers\Mahasiswa\ProfileController;
 use App\Http\Controllers\Web\AuthController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/_import-tools', function () {
+    Artisan::call('import:tools-to-items');
+    return redirect()->route('admin.inventaris.index')->with('success', 'Import data tools ke items berhasil!');
+})->name('tools.import');
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -30,6 +36,18 @@ Route::get('/', function () {
         return redirect()->route('mhs.dashboard');
     }
     return redirect()->route('login');
+});
+
+Route::get('/debug-session', function() {
+    return [
+        'id' => auth()->id(),
+        'user' => auth()->user(),
+        'role' => auth()->user()?->role,
+        'is_active' => auth()->user()?->is_active,
+        'mahasiswa_gate' => \Illuminate\Support\Facades\Gate::allows('mahasiswa-access'),
+        'admin_gate' => \Illuminate\Support\Facades\Gate::allows('admin-access'),
+        'dosen_gate' => \Illuminate\Support\Facades\Gate::allows('dosen-access'),
+    ];
 });
 
 Route::middleware('guest')->group(function () {
@@ -68,7 +86,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventaris/tambah', [ItemController::class, 'create'])->name('inventaris.create');
         Route::post('/inventaris', [ItemController::class, 'store'])->name('inventaris.store');
         Route::get('/inventaris/{id}/edit', [ItemController::class, 'edit'])->name('inventaris.edit');
+        Route::get('/inventaris/{id}/detaildatabarang', [ItemController::class, 'detail'])->name('inventaris.detail');
         Route::put('/inventaris/{id}', [ItemController::class, 'update'])->name('inventaris.update');
+        Route::delete('/inventaris/{id}', [ItemController::class, 'destroy'])->name('inventaris.destroy');
         Route::get('/inventaris/{id}/mutasi', [ItemController::class, 'mutasi'])->name('inventaris.mutasi');
         Route::post('/inventaris/{id}/mutasi', [ItemController::class, 'mutasiStore'])->name('inventaris.mutasi-store');
 
@@ -76,9 +96,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/laporan/export', [ReportController::class, 'export'])->name('laporan.export');
 
         Route::get('/audit-trail', [AuditController::class, 'index'])->name('audit-trail.index');
+        Route::get('/audit-trail/export', [AuditController::class, 'export'])->name('audit-trail.export');
+        Route::get('/audit-trail/{id_log}', [AuditController::class, 'show'])->name('audit-trail.show');
+
+        Route::any('/audit-trail/{any}', function () {
+            abort(403, 'Akses ke data audit trail tidak diizinkan.');
+        })->where('any', '.*');
 
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users/{id}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
+        Route::delete('/users/{id}/reject', [UserController::class, 'reject'])->name('users.reject');
     });
 
     Route::middleware('can:mahasiswa-access')->group(function () {
@@ -95,6 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/peminjaman', [MhsBorrowingController::class, 'index'])->name('peminjaman.index');
         Route::get('/peminjaman/riwayat', [MhsBorrowingController::class, 'riwayat'])->name('peminjaman.riwayat');
         Route::get('/peminjaman/{id}', [MhsBorrowingController::class, 'show'])->name('peminjaman.detail');
+        Route::get('/peminjaman/{id}/pdf', [MhsBorrowingController::class, 'exportPdf'])->name('peminjaman.pdf');
 
         Route::get('/profil', [ProfileController::class, 'index'])->name('profil.index');
         Route::post('/profil/update', [ProfileController::class, 'update'])->name('profil.update');
@@ -114,6 +142,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dosen/peminjaman', [DosenBorrowingController::class, 'index'])->name('dosen.peminjaman.index');
         Route::get('/dosen/peminjaman/riwayat', [DosenBorrowingController::class, 'riwayat'])->name('dosen.peminjaman.riwayat');
         Route::get('/dosen/peminjaman/{id}', [DosenBorrowingController::class, 'show'])->name('dosen.peminjaman.detail');
+        Route::get('/dosen/peminjaman/{id}/pdf', [DosenBorrowingController::class, 'exportPdf'])->name('dosen.peminjaman.pdf');
 
         Route::get('/dosen/profil', [DosenProfileController::class, 'index'])->name('dosen.profil.index');
         Route::post('/dosen/profil/update', [DosenProfileController::class, 'update'])->name('dosen.profil.update');

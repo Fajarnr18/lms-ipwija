@@ -2,12 +2,7 @@
 @section('title', 'Dashboard Admin')
 @section('subtitle', 'Ringkasan Sistem Laboratorium')
 
-@section('header-actions')
-<a href="{{ route('admin.peminjaman.index', ['tab' => 'menunggu']) }}" class="btn btn-sm">
-    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-    Peminjaman Baru
-</a>
-@endsection
+
 
 @section('content')
 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px">
