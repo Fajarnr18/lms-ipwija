@@ -231,6 +231,7 @@
     color: #fff;
     background: #3B82F6;
 }
+
 .catalog-footer {
     display: flex;
     justify-content: space-between;
@@ -295,16 +296,7 @@
     @forelse($tools as $tool)
     <div class="catalog-card">
         <div class="catalog-card-img">
-            @if($tool->foto_alat && Storage::disk('public')->exists($tool->foto_alat))
-            <img src="{{ Storage::url($tool->foto_alat) }}" alt="{{ $tool->nama_alat }}">
-            @else
-            <div class="no-img">
-                <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom:8px;color:#D1D5DB">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"/>
-                </svg>
-                <div>Tidak ada foto</div>
-            </div>
-            @endif
+            <img src="{{ $tool->foto_url }}" alt="{{ $tool->nama_alat }}">
         </div>
         <div class="catalog-card-body">
             <div class="card-top-row">
@@ -312,7 +304,7 @@
                 @php
                 $badgeClass = match($tool->status_alat) {
                     'TERSEDIA' => 'badge-green',
-                    'MAINTENANCE' => 'badge-red',
+                    'MAINTENANCE', 'RUSAK' => 'badge-red',
                     default => 'badge-gray',
                 };
                 @endphp
@@ -334,16 +326,12 @@
                     Detail
                 </a>
                 @if($tool->stok_tersedia > 0 && $tool->status_alat === 'TERSEDIA')
-                <form method="POST" action="{{ route('keranjang.tambah', $tool->id_alat) }}" style="display:contents">
-                    @csrf
-                    <input type="hidden" name="id_alat" value="{{ $tool->id_alat }}">
-                    <input type="hidden" name="jumlah" value="1">
-                    <button type="submit" class="btn-cart-add" title="Tambah ke keranjang">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                    </button>
-                </form>
+                @csrf
+                <button type="button" class="btn-cart-add btn-add-cart" data-id="{{ $tool->id_alat }}" data-name="{{ $tool->nama_alat }}" title="Tambah ke keranjang">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+                    </svg>
+                </button>
                 @else
                 <button class="btn-cart-add" disabled style="opacity:.3;cursor:not-allowed;background:#F3F4F6;border-color:#E5E7EB" title="Tidak tersedia">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,11 +358,59 @@
         Total <strong>{{ $tools->total() }}</strong> Alat
     </div>
     @if($tools->hasPages())
-    <div class="pagination" style="margin-top:0">
-        {{ $tools->appends(request()->query())->links() }}
-    </div>
+    {{ $tools->appends(request()->query())->links() }}
     @endif
 </div>
+
+<style>
+.cart-toast { position:fixed; bottom:24px; right:24px; background:#065F46; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; font-family:'Inter',sans-serif; box-shadow:0 4px 16px rgba(0,0,0,.15); z-index:999; opacity:0; transform:translateY(20px); transition:all .3s; pointer-events:none; }
+.cart-toast.show { opacity:1; transform:translateY(0); }
+.cart-toast.error { background:#991B1B; }
+</style>
+<div id="cartToast" class="cart-toast"></div>
+
+<script>
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-add-cart');
+    if (!btn) return;
+    var id = btn.dataset.id;
+    var name = btn.dataset.name;
+    fetch('{{ url("keranjang/tambah") }}/' + id, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'jumlah=1'
+    })
+    .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+    .then(function(res) {
+        var toast = document.getElementById('cartToast');
+        if (res.ok) {
+            toast.textContent = name + ' ditambahkan ke keranjang';
+            toast.className = 'cart-toast show';
+            var badge = document.querySelector('.topbar-cart-count');
+            if (badge) { badge.textContent = res.data.cart_count > 99 ? '99+' : res.data.cart_count; }
+            else {
+                var cartBtn = document.querySelector('.topbar-cart-btn');
+                if (cartBtn && !cartBtn.querySelector('.topbar-cart-count')) {
+                    var c = document.createElement('span');
+                    c.className = 'topbar-cart-count';
+                    c.textContent = res.data.cart_count;
+                    cartBtn.appendChild(c);
+                }
+            }
+        } else {
+            toast.textContent = res.data.error || 'Gagal menambahkan';
+            toast.className = 'cart-toast show error';
+        }
+        setTimeout(function() { toast.classList.remove('show'); }, 2500);
+    })
+    .catch(function() {
+        var toast = document.getElementById('cartToast');
+        toast.textContent = 'Terjadi kesalahan';
+        toast.className = 'cart-toast show error';
+        setTimeout(function() { toast.classList.remove('show'); }, 2500);
+    });
+});
+</script>
 
 @if(request('search') || request('kategori') || request('status_alat'))
 <script>

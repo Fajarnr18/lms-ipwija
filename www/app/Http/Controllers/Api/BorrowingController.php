@@ -78,7 +78,7 @@ class BorrowingController extends Controller
         ]);
 
         AuditLogService::log('PEMINJAMAN', 'APPROVE', $borowing->id_borrowing, null, $borowing->toArray());
-        N8NWebhookService::send('approved', $borowing);
+        N8NWebhookService::sendBorrowingNotification($borowing, 'approved', 'Peminjaman disetujui');
 
         return response()->json(['message' => 'Peminjaman berhasil disetujui.', 'data' => $borowing]);
     }
@@ -101,7 +101,7 @@ class BorrowingController extends Controller
         ]);
 
         AuditLogService::log('PEMINJAMAN', 'REJECT', $borowing->id_borrowing, null, $borowing->toArray());
-        N8NWebhookService::send('rejected', $borowing);
+        N8NWebhookService::sendBorrowingNotification($borowing, 'rejected', 'Alasan: ' . $request->alasan_penolakan);
 
         return response()->json(['message' => 'Peminjaman ditolak.', 'data' => $borowing]);
     }
@@ -157,12 +157,15 @@ class BorrowingController extends Controller
             $tool = Tool::findOrFail($borrowingItem->id_alat);
             $kondisi = $itemData['kondisi_saat_kembali'];
 
-            if (in_array($kondisi, ['Rusak Ringan', 'Rusak Berat', 'Tidak Layak'])) {
-                if (in_array($kondisi, ['Rusak Berat', 'Tidak Layak'])) {
-                    $tool->decrement('stok_total', $borrowingItem->jumlah_unit);
-                }
+                if (in_array($kondisi, ['Rusak Ringan', 'Rusak Berat', 'Tidak Layak'])) {
+                $tool->decrement('stok_total', $borrowingItem->jumlah_unit);
+                $tool->increment('stok_rusak', $borrowingItem->jumlah_unit);
             } else {
                 $tool->increment('stok_tersedia', $borrowingItem->jumlah_unit);
+                
+                if ($tool->stok_tersedia > 0 && $tool->status_alat === 'MAINTENANCE') {
+                    $tool->update(['status_alat' => 'TERSEDIA']);
+                }
             }
         }
 
@@ -173,12 +176,12 @@ class BorrowingController extends Controller
         ]);
 
         AuditLogService::log('PEMINJAMAN', 'RETURN', $borowing->id_borrowing, null, $borowing->toArray());
-        N8NWebhookService::send('returned', $borowing);
+        N8NWebhookService::sendBorrowingNotification($borowing, 'returned', 'Alat berhasil dikembalikan.');
 
         return response()->json(['message' => 'Pengembalian berhasil dicatat.', 'data' => $borowing]);
     }
 
-    public function riwayat(Request $request): JsonResponse
+    public function my(Request $request): JsonResponse
     {
         $query = Borowing::where('mahasiswa_id', auth()->id())
             ->with(['borrowingItems.tool']);
@@ -199,4 +202,57 @@ class BorrowingController extends Controller
             ],
         ]);
     }
+
+    public function store(Request $request): JsonResponse
+    {
+        $request->validate([
+            'tgl_rencana_pinjam' => 'required|date',
+            'tgl_rencana_kembali' => 'required|date|after_or_equal:tgl_rencana_pinjam',
+            'keperluan' => 'required|string',
+            'items' => 'required|array|min:1',
+            'items.*.tool_id' => 'required|exists:tools,id_alat',
+            'items.*.jumlah_unit' => 'required|integer|min:1'
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $borowing = Borowing::create([
+                'mahasiswa_id' => auth()->id(),
+                'tgl_pengajuan' => now(),
+                'tgl_rencana_pinjam' => $request->tgl_rencana_pinjam,
+                'tgl_rencana_kembali' => $request->tgl_rencana_kembali,
+                'keperluan' => $request->keperluan,
+                'status' => 'MENUNGGU',
+            ]);
+
+            foreach ($request->items as $item) {
+                $tool = Tool::findOrFail($item['tool_id']);
+                
+                if ($tool->stok_tersedia < $item['jumlah_unit']) {
+                    throw new \Exception("Stok alat {$tool->nama_alat} tidak mencukupi. Tersedia: {$tool->stok_tersedia}");
+                }
+
+                BorrowingItem::create([
+                    'borrowing_id' => $borowing->id_borrowing,
+                    'tool_id' => $item['tool_id'],
+                    'jumlah_unit' => $item['jumlah_unit'],
+                ]);
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            AuditLogService::log('PEMINJAMAN', 'CREATE', $borowing->id_borrowing, null, $borowing->toArray());
+            
+            return response()->json([
+                'message' => 'Pengajuan peminjaman berhasil disubmit.',
+                'data' => $borowing->load('borrowingItems.tool')
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
 }
+

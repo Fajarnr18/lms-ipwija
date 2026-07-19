@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AuditLogService;
+use App\Services\N8NWebhookService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +40,7 @@ class AuthController extends Controller
 
         if (!$user->is_active) {
             return back()->withErrors([
-                'email' => 'Akun Anda telah dinonaktifkan',
+                'email' => 'Akun Anda sedang menunggu persetujuan Admin atau telah dinonaktifkan',
             ])->onlyInput('email');
         }
 
@@ -67,40 +68,62 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255',
             'program_studi' => 'required|string|max:255',
             'password' => 'required|string|min:8',
-            'konfirmasi_password' => 'required|string|same:password',
+            'password_confirmation' => 'required|string|same:password',
+            'terms' => 'required|accepted',
+            'no_whatsapp' => 'nullable|numeric|digits_between:10,13',
+            'jenis_notifikasi' => 'nullable|in:Email,Whatsapp',
         ], [
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi',
+            'nim.required' => 'NIM/NUPTK wajib diisi',
+            'email.required' => 'Email wajib diisi',
+            'program_studi.required' => 'Program studi wajib diisi',
+            'password.required' => 'Password wajib diisi',
+            'password_confirmation.required' => 'Konfirmasi password wajib diisi',
             'password.min' => 'Password minimal 8 karakter',
-            'konfirmasi_password.same' => 'Konfirmasi password tidak sama',
+            'password_confirmation.same' => 'Konfirmasi password tidak sama',
             'email.email' => 'Format email tidak valid',
+            'terms.required' => 'Anda harus menyetujui syarat dan ketentuan.',
+            'terms.accepted' => 'Anda harus menyetujui syarat dan ketentuan.',
+            'no_whatsapp.numeric' => 'Nomor WhatsApp harus berupa angka',
+            'no_whatsapp.digits_between' => 'Nomor WhatsApp harus antara 10 hingga 13 digit',
         ]);
 
         $nim = $request->nim;
 
         $existingByNim = User::where('nim', $nim)->first();
         if ($existingByNim) {
-            return back()->withErrors(['nim' => 'NIM/NUPTK sudah digunakan'])->onlyInput('nim');
+            return back()->withErrors(['nim' => 'NIM/NUPTK sudah digunakan (oleh akun yang aktif)'])->onlyInput('nim');
         }
 
         $existingByEmail = User::where('email', $request->email)->first();
         if ($existingByEmail) {
-            return back()->withErrors(['email' => 'Email sudah digunakan'])->onlyInput('email');
+            return back()->withErrors(['email' => 'Email sudah digunakan (oleh akun yang aktif)'])->onlyInput('email');
         }
 
-        $role = preg_match('/^\d{16}$/', $nim) ? 'dosen' : 'mahasiswa';
-
-        $user = User::create([
-            'nama_lengkap' => $request->nama_lengkap,
-            'nim' => $nim,
-            'email' => $request->email,
-            'program_studi' => $request->program_studi,
-            'password' => Hash::make($request->password, ['rounds' => 10]),
-            'role' => $role,
-            'is_active' => true,
-        ]);
+        try {
+            $user = User::create([
+                'nama_lengkap' => $request->nama_lengkap,
+                'nim' => $nim,
+                'email' => $request->email,
+                'program_studi' => $request->program_studi,
+                'password' => Hash::make($request->password, ['rounds' => 10]),
+                'no_whatsapp' => $request->no_whatsapp,
+                'jenis_notifikasi' => $request->no_whatsapp ? ($request->jenis_notifikasi ?? 'Email') : 'Email',
+                'role' => 'mahasiswa',
+                'is_active' => false,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('REGISTRATION ERROR: ' . $e->getMessage());
+            return back()->withErrors(['email' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+        }
 
         AuditLogService::log('User', 'CREATE', $user->id, null, $user->toArray());
+        
+        N8NWebhookService::send('registered', $user, [
+            'message' => 'Registrasi berhasil. Menunggu persetujuan admin.',
+        ]);
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login.');
+        return redirect()->route('login')->with('success', 'Registrasi berhasil! Akun Anda sedang menunggu persetujuan Admin.');
     }
 
     public function logout(Request $request): RedirectResponse

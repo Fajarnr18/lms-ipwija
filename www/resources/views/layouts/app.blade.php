@@ -30,15 +30,15 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
         .sidebar .nav-label { color: rgba(255,255,255,.3); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; padding: 16px 12px 6px; }
         .sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.55); text-decoration: none; transition: all .15s; margin-bottom: 1px; }
         .sidebar nav a:hover { background: rgba(255,255,255,.06); color: #fff; }
-        .sidebar nav a.active { background: rgba(59,130,246,.2); color: #fff; }
+        .sidebar nav a.active { background: #3B82F6; color: #fff; border-radius: 4px; font-weight: 600; }
         .sidebar nav a svg { width: 18px; height: 18px; flex-shrink: 0; }
         .sidebar nav a.sub-link { padding-left: 14px; font-size: 12px; }
         .sidebar nav a.sub-link svg { width: 16px; height: 16px; }
         .sidebar .footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.06); }
         .sidebar .footer form { margin: 0; }
-        .sidebar .footer button { display: flex; align-items: center; gap: 12px; padding: 12px 16px; width: 100%; border: 1px solid rgba(239,68,68,.3); border-radius: 10px; font-size: 14px; font-weight: 600; color: #fca5a5; background: rgba(239,68,68,.08); cursor: pointer; font-family: 'Inter', sans-serif; transition: all .2s; letter-spacing: .01em; }
-        .sidebar .footer button:hover { background: rgba(239,68,68,.2); color: #fff; border-color: rgba(239,68,68,.6); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,.15); }
-        .sidebar .footer button svg { width: 20px; height: 20px; transition: transform .2s; }
+        .sidebar .footer button { display: flex; align-items: center; gap: 12px; padding: 12px 16px; width: 100%; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,.55); background: transparent; cursor: pointer; font-family: 'Inter', sans-serif; transition: all .2s; letter-spacing: .01em; text-align: left; }
+        .sidebar .footer button:hover { background: rgba(255,255,255,.06); color: #fff; }
+        .sidebar .footer button svg { width: 18px; height: 18px; transition: transform .2s; }
         .sidebar .footer button:hover svg { transform: translateX(2px); }
         .main { margin-left: 250px; min-height: 100vh; display: flex; flex-direction: column; }
         @media(max-width:1023px){ .main { margin-left: 0; } }
@@ -47,6 +47,7 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
         .topbar .menu-btn:hover { background: #F3F4F6; }
         @media(max-width:1023px){ .topbar .menu-btn { display: flex; align-items: center; justify-content: center; } }
         .topbar .search-box { position: relative; flex: 1; max-width: 360px; }
+        .topbar .header-title { font-size:15px; font-weight:600; color:#1A1A2E; white-space:nowrap; margin-right:16px; }
         .topbar .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #9CA3AF; }
         .topbar .search-box input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; background: #F9FAFB; outline: none; transition: all .2s; }
         .topbar .search-box input:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); background: #fff; }
@@ -118,7 +119,7 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
         .alert-success { background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; }
         .alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
         .alert-info { background: #EEF2FF; border: 1px solid #C7D2FE; color: #1E4FD8; }
-        .pagination { display: flex; justify-content: center; gap: 4px; margin-top: 20px; flex-wrap: wrap; }
+        .pagination { display: flex; justify-content: flex-end; gap: 4px; margin-top: 20px; flex-wrap: wrap; }
         .pagination a, .pagination span { padding: 6px 12px; border: 1.5px solid #E5E7EB; border-radius: 6px; font-size: 12px; text-decoration: none; color: #6B7280; transition: all .15s; }
         .pagination a:hover { background: #F9FAFB; border-color: #D1D5DB; }
         .pagination .active { background: #1E3A5F; color: #fff; border-color: #1E3A5F; }
@@ -146,7 +147,7 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
             <div class="logo"><img src="/logo.png" alt="Logo"></div>
             <div>
                 <div class="brand-text">{{ config('app.name') }}</div>
-                <div class="brand-sub">Laboratorium Digital</div>
+                <div class="brand-sub">{{ $roleLabel }} Portal</div>
             </div>
         </div>
         <nav>
@@ -188,25 +189,24 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
             @elseif($isDosen)
             <div class="nav-label">Menu Utama</div>
             <a href="{{ route('dosen.dashboard') }}" class="{{ request()->routeIs('dosen.dashboard') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                 Dashboard
             </a>
             <a href="{{ route('dosen.katalog.index') }}" class="{{ request()->routeIs('dosen.katalog*') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                 Katalog Alat
             </a>
-            <a href="{{ route('dosen.keranjang.index') }}" class="{{ request()->routeIs('dosen.keranjang*') ? 'active' : '' }}">
+            <a href="{{ route('dosen.keranjang.index') }}" class="{{ request()->routeIs('dosen.keranjang*') ? 'active' : '' }}" style="position:relative;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
-                Keranjang
+                Keranjang Peminjaman
+                @php $cartCountDosen = collect(session('cart', []))->sum('jumlah_unit'); @endphp
+                @if($cartCountDosen > 0)
+                <span style="position:absolute;right:12px;background:#EF4444;color:#fff;font-size:10px;font-weight:bold;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;">{{ $cartCountDosen }}</span>
+                @endif
             </a>
-            <div class="nav-label">Informasi</div>
-            <a href="{{ route('dosen.peminjaman.index') }}" class="{{ request()->routeIs('dosen.peminjaman.*') && !request()->routeIs('dosen.peminjaman.riwayat') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                Peminjaman Saya
-            </a>
-            <a href="{{ route('dosen.peminjaman.riwayat') }}" class="sub-link {{ request()->routeIs('dosen.peminjaman.riwayat') ? 'active' : '' }}">
+            <a href="{{ route('dosen.peminjaman.index') }}" class="{{ request()->routeIs('dosen.peminjaman.*') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Riwayat
+                Peminjaman Saya
             </a>
             <a href="{{ route('dosen.profil.index') }}" class="{{ request()->routeIs('dosen.profil.*') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -215,25 +215,24 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
             @else
             <div class="nav-label">Menu Utama</div>
             <a href="{{ route('mhs.dashboard') }}" class="{{ request()->routeIs('mhs.dashboard') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                 Dashboard
             </a>
             <a href="{{ route('katalog.index') }}" class="{{ request()->routeIs('katalog*') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                 Katalog Alat
             </a>
-            <a href="{{ route('keranjang.index') }}" class="{{ request()->routeIs('keranjang*') ? 'active' : '' }}">
+            <a href="{{ route('keranjang.index') }}" class="{{ request()->routeIs('keranjang*') ? 'active' : '' }}" style="position:relative;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
-                Keranjang
+                Keranjang Peminjaman
+                @php $cartCount = collect(session('cart', []))->sum('jumlah_unit'); @endphp
+                @if($cartCount > 0)
+                <span style="position:absolute;right:12px;background:#EF4444;color:#fff;font-size:10px;font-weight:bold;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;">{{ $cartCount }}</span>
+                @endif
             </a>
-            <div class="nav-label">Informasi</div>
-            <a href="{{ route('peminjaman.index') }}" class="{{ request()->routeIs('peminjaman.index') ? 'active' : '' }}">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                Peminjaman
-            </a>
-            <a href="{{ route('peminjaman.riwayat') }}" class="{{ request()->routeIs('peminjaman.riwayat') ? 'active' : '' }}">
+            <a href="{{ route('peminjaman.index') }}" class="{{ request()->routeIs('peminjaman.*') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Riwayat
+                Peminjaman Saya
             </a>
             <a href="{{ route('profil.index') }}" class="{{ request()->routeIs('profil*') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -256,15 +255,13 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
             <button class="menu-btn" onclick="toggleSidebar()">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
-            <div class="search-box">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text" placeholder="Cari sesuatu...">
-            </div>
+            <div class="header-title">@yield('header-title')</div>
+            @yield('header-search')
             <div class="user-area">
                 @if(!$isAdmin)
                 @php
                 $cartRoute = $isDosen ? 'dosen.keranjang.index' : 'keranjang.index';
-                $cartCount = collect(session('cart', []))->sum('jumlah');
+                $cartCount = collect(session('cart', []))->sum('jumlah_unit');
                 @endphp
                 <a href="{{ route($cartRoute) }}" class="topbar-cart-btn">
                     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,33 +283,48 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
             </div>
         </header>
         <main class="content">
+            @yield('top-bar')
             <div class="page-header">
                 <div>
                     <h1>@yield('title')</h1>
-                    <p>@yield('subtitle', '')</p>
+                    <p>@yield('subtitle', '') @yield('subtitle_badge', '')</p>
                 </div>
                 <div class="page-header-actions">
                     @yield('header-actions', '')
                 </div>
             </div>
-            @if(session('success'))
-            <div class="alert alert-success" id="successAlert">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span style="flex:1">{{ session('success') }}</span>
-                <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px">&times;</button>
-            </div>
-            @endif
-            @if(session('error'))
-            <div class="alert alert-error">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span style="flex:1">{{ session('error') }}</span>
-                <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px">&times;</button>
-            </div>
-            @endif
             @yield('content')
         </main>
     </div>
+
+    {{-- NOTIFICATION MODAL --}}
+    <div class="modal-overlay" id="notifModal">
+        <div class="modal" style="text-align:center;max-width:400px">
+            <div id="notifIcon" style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"></div>
+            <h2 id="notifTitle" style="font-size:17px;font-weight:700;margin:0 0 8px;color:#1A1A2E"></h2>
+            <p id="notifMessage" style="font-size:14px;color:#6B7280;margin:0 0 24px;line-height:1.5"></p>
+            <button class="btn" onclick="closeNotifModal()" style="min-width:100px;justify-content:center;padding:10px 24px;font-size:14px;font-weight:600">Tutup</button>
+        </div>
+    </div>
+
+    {{-- CONFIRMATION MODAL --}}
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal" style="text-align:center;max-width:400px">
+            <div style="width:56px;height:56px;border-radius:50%;background:#FEF3C7;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                <svg width="28" height="28" fill="none" stroke="#D97706" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            </div>
+            <h2 style="font-size:17px;font-weight:700;margin:0 0 8px;color:#1A1A2E">Konfirmasi</h2>
+            <p id="confirmMessage" style="font-size:14px;color:#6B7280;margin:0 0 24px;line-height:1.5"></p>
+            <div style="display:flex;gap:12px;justify-content:center">
+                <button class="btn btn-outline" onclick="closeConfirmModal()" style="min-width:100px;justify-content:center">Batal</button>
+                <button class="btn" onclick="executeConfirm()" style="min-width:100px;background:#1E3A5F;justify-content:center">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+    let confirmCallback = null;
+
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('open');
         document.getElementById('overlay').classList.toggle('show');
@@ -320,18 +332,64 @@ $roleLabel = match($role) { 'admin' => 'Admin', 'mahasiswa' => 'Mahasiswa', 'dos
     document.addEventListener('click', function(e) {
         if (e.target.id === 'overlay') toggleSidebar();
     });
-    function confirmAction(msg) {
-        return confirm(msg || 'Apakah Anda yakin?');
+
+    // Confirmation modal
+    function showConfirmModal(message, callback) {
+        document.getElementById('confirmMessage').textContent = message;
+        confirmCallback = callback;
+        document.getElementById('confirmModal').classList.add('show');
     }
-    document.addEventListener('DOMContentLoaded', function() {
-        var alert = document.getElementById('successAlert');
-        if (alert) {
-            setTimeout(function() {
-                alert.style.transition = 'all .3s';
-                alert.style.opacity = '0';
-                setTimeout(function() { alert.remove(); }, 300);
-            }, 5000);
+    function closeConfirmModal() {
+        document.getElementById('confirmModal').classList.remove('show');
+        confirmCallback = null;
+    }
+    function executeConfirm() {
+        if (confirmCallback) confirmCallback();
+        closeConfirmModal();
+    }
+
+    // Notification modal
+    function showNotifModal(type, message) {
+        var iconEl = document.getElementById('notifIcon');
+        var titleEl = document.getElementById('notifTitle');
+        var msgEl = document.getElementById('notifMessage');
+        msgEl.textContent = message;
+        if (type === 'success') {
+            iconEl.style.background = '#D1FAE5';
+            iconEl.innerHTML = '<svg width="28" height="28" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
+            titleEl.textContent = 'Berhasil';
+        } else {
+            iconEl.style.background = '#FEE2E2';
+            iconEl.innerHTML = '<svg width="28" height="28" fill="none" stroke="#DC2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>';
+            titleEl.textContent = 'Gagal';
         }
+        document.getElementById('notifModal').classList.add('show');
+    }
+    function closeNotifModal() {
+        document.getElementById('notifModal').classList.remove('show');
+    }
+
+    // data-confirm delegation
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-confirm]');
+        if (btn) {
+            e.preventDefault();
+            var form = btn.closest('form');
+            var message = btn.getAttribute('data-confirm');
+            showConfirmModal(message, function() {
+                if (form) form.submit();
+            });
+        }
+    });
+
+    // Flash messages → modal
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session('success'))
+        showNotifModal('success', '{{ session('success') }}');
+        @endif
+        @if(session('error'))
+        showNotifModal('error', '{{ session('error') }}');
+        @endif
     });
     </script>
 </body>

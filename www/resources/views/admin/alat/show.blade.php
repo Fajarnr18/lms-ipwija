@@ -4,7 +4,6 @@
 
 @section('header-actions')
 <a href="{{ route('admin.alat.index') }}" class="btn btn-sm btn-outline">&larr; Kembali</a>
-<a href="{{ route('admin.alat.edit', $tool->id_alat) }}" class="btn btn-sm btn-info" style="margin-left:8px">Edit Alat</a>
 @endsection
 
 @section('content')
@@ -23,15 +22,9 @@
         </form>
 
         <div class="card">
-            @if($tool->foto_alat)
             <div class="detail-foto">
-                <img src="{{ asset('storage/' . $tool->foto_alat) }}" alt="Foto {{ $tool->nama_alat }}">
+                <img src="{{ $tool->foto_url }}" alt="Foto {{ $tool->nama_alat }}" style="width:100%;height:100%;object-fit:cover">
             </div>
-            @else
-            <div class="detail-foto" style="background:#F9FAFB;display:flex;align-items:center;justify-content:center;color:#D1D5DB;font-size:48px">
-                <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            </div>
-            @endif
         </div>
 
         <div class="card">
@@ -46,8 +39,18 @@
                     <div class="value">{{ $tool->kategori }}</div>
                 </div>
                 <div>
-                    <div class="label">Kondisi</div>
-                    <div class="value">{{ $tool->kondisi_fisik ?? '-' }}</div>
+                    <div class="label">Status</div>
+                    <div class="value" style="margin-top:4px">
+                        @php
+                        $badgeClass = match($tool->status_alat) {
+                            'TERSEDIA' => 'badge-green',
+                            'MAINTENANCE' => 'badge-yellow',
+                            'RUSAK' => 'badge-red',
+                            default => 'badge-gray',
+                        };
+                        @endphp
+                        <span class="badge {{ $badgeClass }}">{{ $tool->status_alat }}</span>
+                    </div>
                 </div>
             </div>
 
@@ -99,6 +102,7 @@
                                     'DISETUJUI' => 'badge-blue',
                                     'DITOLAK' => 'badge-red',
                                     'DIPINJAM' => 'badge-purple',
+                                    'TERLAMBAT' => 'badge-danger',
                                     'DIKEMBALIKAN' => 'badge-green',
                                     default => 'badge-gray',
                                 };
@@ -107,6 +111,7 @@
                                     'DISETUJUI' => 'Disetujui',
                                     'DITOLAK' => 'Ditolak',
                                     'DIPINJAM' => 'Dipinjam',
+                                    'TERLAMBAT' => 'Terlambat',
                                     'DIKEMBALIKAN' => 'Dikembalikan',
                                     default => $b->status,
                                 };
@@ -123,16 +128,13 @@
                 </table>
             </div>
             @if($borrowings->hasPages())
-            <div class="pagination" style="margin-top:12px">{{ $borrowings->appends(request()->query())->links() }}</div>
+            {{ $borrowings->appends(request()->query())->links() }}
             @endif
         </div>
     </div>
 </div>
 
-<div class="detail-actions">
-    <a href="{{ route('admin.alat.index') }}" class="btn btn-sm btn-outline">&larr; Kembali</a>
-    <a href="{{ route('admin.alat.edit', $tool->id_alat) }}" class="btn btn-sm btn-info">Edit Alat</a>
-</div>
+
 
 <style>
 .detail-layout {
@@ -259,3 +261,4 @@
 }
 </style>
 @endsection
+

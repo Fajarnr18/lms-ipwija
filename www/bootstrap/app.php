@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'mahasiswa' => \App\Http\Middleware\IsMahasiswa::class,
             'dosen' => \App\Http\Middleware\IsDosen::class,
         ]);
+        $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectTo(
+            guests: '/login',
+            users: '/'
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

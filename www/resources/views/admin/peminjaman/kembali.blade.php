@@ -1,7 +1,20 @@
 @extends('layouts.app')
 @section('title', 'Catat Pengembalian')
 @section('subtitle', 'Verifikasi dan catat kondisi alat yang dikembalikan')
-
+@section('header-search')
+<div style="display:flex;align-items:center;gap:8px;flex:1;max-width:500px">
+    <div style="position:relative;flex:1">
+        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#9CA3AF" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" placeholder="Cari ID Peminjaman..." style="width:100%;padding:6px 12px 6px 32px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;background:#F9FAFB;outline:none;transition:all .2s" onfocus="this.style.borderColor='#3B82F6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.1)';this.style.background='#fff'" onblur="this.style.borderColor='#E5E7EB';this.style.boxShadow='none';this.style.background='#F9FAFB'">
+    </div>
+    <button type="button" class="btn btn-outline" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:12px;white-space:nowrap">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+        Filter
+    </button>
+</div>
+@endsection
 @section('content')
 <style>
 .kembali-wrap { display:flex; flex-direction:column; gap:20px; }
@@ -21,23 +34,6 @@
 </style>
 
 <div class="kembali-wrap">
-
-    {{-- TOP: Search + Filter --}}
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <div style="position:relative;flex:1;min-width:200px;max-width:400px">
-            <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:#9CA3AF" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input type="text" placeholder="Cari ID Peminjaman..." style="width:100%;padding:10px 14px 10px 42px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;outline:none;transition:all .2s" onfocus="this.style.borderColor='#3B82F6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.1)'" onblur="this.style.borderColor='#E5E7EB';this.style.boxShadow='none'">
-        </div>
-        <button type="button" class="btn btn-outline" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:14px">
-            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-            Filter
-        </button>
-    </div>
-
-    {{-- HEADER --}}
-    <h1 style="font-size:28px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin:0">Catat Pengembalian Alat</h1>
 
     {{-- INFO CARD --}}
     <div class="card" style="padding:24px">
@@ -108,47 +104,50 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($borowing->borrowingItems as $idx => $item)
-                        <tr>
-                            <td style="text-align:center;font-weight:600;font-size:14px">{{ $loop->iteration }}</td>
-                            <td>
-                                <div style="font-weight:600;color:#1A1A2E">{{ $item->tool?->nama_alat }}</div>
-                                <div style="font-size:12px;color:#6B7280;margin-top:2px">Kode: {{ $item->tool?->kode_alat }} &middot; Jumlah: {{ $item->jumlah_unit }}</div>
-                            </td>
-                            <td>
-                                <input type="hidden" name="items[{{ $idx }}][id_borrowings_item]" value="{{ $item->id_borrowings_item }}">
-                                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                                    <label>
-                                        <input type="radio" name="items[{{ $idx }}][kondisi_saat_kembali]" value="Baik" class="kondisi-radio kondisi-check" required onchange="checkAllFilled()">
-                                        <span class="kondisi-label kondisi-baik">
-                                            <svg width="18" height="18" fill="none" stroke="#10B981" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            Baik
-                                        </span>
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="items[{{ $idx }}][kondisi_saat_kembali]" value="Rusak Ringan" class="kondisi-radio kondisi-check" required onchange="checkAllFilled()">
-                                        <span class="kondisi-label kondisi-ringan">
-                                            <svg width="18" height="18" fill="none" stroke="#F59E0B" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                            Rusak Ringan
-                                        </span>
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="items[{{ $idx }}][kondisi_saat_kembali]" value="Rusak Berat" class="kondisi-radio kondisi-check" required onchange="checkAllFilled()">
-                                        <span class="kondisi-label kondisi-berat">
-                                            <svg width="18" height="18" fill="none" stroke="#EF4444" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            Rusak Berat
-                                        </span>
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="items[{{ $idx }}][kondisi_saat_kembali]" value="Tidak Layak" class="kondisi-radio kondisi-check" required onchange="checkAllFilled()">
-                                        <span class="kondisi-label kondisi-hilang">
-                                            <svg width="18" height="18" fill="none" stroke="#6B7280" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            Tidak Layak
-                                        </span>
-                                    </label>
-                                </div>
-                            </td>
-                        </tr>
+                        @php $globalIdx = 0; @endphp
+                        @foreach($borowing->borrowingItems as $item)
+                            @for($i = 1; $i <= $item->jumlah_unit; $i++)
+                                <tr>
+                                    <td style="text-align:center;font-weight:600;font-size:14px">{{ ++$globalIdx }}</td>
+                                    <td>
+                                        <div style="font-weight:600;color:#1A1A2E">{{ $item->tool?->nama_alat }}</div>
+                                        <div style="font-size:12px;color:#6B7280;margin-top:2px">Kode: {{ $item->tool?->kode_alat }} &middot; Unit {{ $i }} dari {{ $item->jumlah_unit }}</div>
+                                    </td>
+                                    <td>
+                                        <input type="hidden" name="items[{{ $globalIdx }}][id_borrowings_item]" value="{{ $item->id_borrowings_item }}">
+                                        <div style="display:flex;gap:8px;flex-wrap:wrap">
+                                            <label>
+                                                <input type="radio" name="items[{{ $globalIdx }}][kondisi_saat_kembali]" value="Baik" class="kondisi-radio kondisi-check" required>
+                                                <span class="kondisi-label kondisi-baik">
+                                                    <svg width="18" height="18" fill="none" stroke="#10B981" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    Baik
+                                                </span>
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="items[{{ $globalIdx }}][kondisi_saat_kembali]" value="Rusak Ringan" class="kondisi-radio kondisi-check" required>
+                                                <span class="kondisi-label kondisi-ringan">
+                                                    <svg width="18" height="18" fill="none" stroke="#F59E0B" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    Rusak Ringan
+                                                </span>
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="items[{{ $globalIdx }}][kondisi_saat_kembali]" value="Rusak Berat" class="kondisi-radio kondisi-check" required>
+                                                <span class="kondisi-label kondisi-berat">
+                                                    <svg width="18" height="18" fill="none" stroke="#EF4444" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    Rusak Berat
+                                                </span>
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="items[{{ $globalIdx }}][kondisi_saat_kembali]" value="Tidak Layak" class="kondisi-radio kondisi-check" required>
+                                                <span class="kondisi-label kondisi-hilang">
+                                                    <svg width="18" height="18" fill="none" stroke="#6B7280" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    Tidak Layak
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endfor
                         @endforeach
                     </tbody>
                 </table>
@@ -183,7 +182,7 @@
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 Batal
             </a>
-            <button type="submit" class="btn btn-info" id="simpanBtn" disabled style="display:flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600">
+            <button type="submit" class="btn btn-info" id="simpanBtn" style="display:flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 Simpan Verifikasi
             </button>
@@ -192,21 +191,16 @@
 </div>
 
 <script>
-function checkAllFilled() {
+document.getElementById('formKembali').addEventListener('submit', function(e) {
     var groups = {};
     document.querySelectorAll('.kondisi-check').forEach(function(r) {
-        var name = r.getAttribute('name');
-        if (!groups[name]) groups[name] = false;
-        if (r.checked) groups[name] = true;
+        groups[r.getAttribute('name')] = groups[r.getAttribute('name')] || r.checked;
     });
     var allFilled = Object.keys(groups).length > 0 && Object.values(groups).every(function(v) { return v; });
-    document.getElementById('simpanBtn').disabled = !allFilled;
-}
-document.addEventListener('DOMContentLoaded', function() {
-    checkAllFilled();
-    document.querySelectorAll('.kondisi-check').forEach(function(r) {
-        r.addEventListener('change', checkAllFilled);
-    });
+    if (!allFilled) {
+        e.preventDefault();
+        showNotifModal('error', 'Semua alat harus dipilih kondisinya.');
+    }
 });
 </script>
 @endsection

@@ -35,22 +35,29 @@ $totalUnit = $borowing->borrowingItems->sum('jumlah_unit');
                     <h2 style="font-size:16px;font-weight:700;color:#1A1A2E;margin:0">Informasi Peminjam</h2>
                 </div>
                 @php
-                $badgeClass = match($st) {
-                    'MENUNGGU' => 'badge-yellow',
-                    'DISETUJUI' => 'badge-blue',
-                    'DITOLAK' => 'badge-red',
-                    'DIPINJAM' => 'badge-purple',
-                    'DIKEMBALIKAN' => 'badge-green',
-                    default => 'badge-gray',
-                };
-                $statusLabel = match($st) {
-                    'MENUNGGU' => 'Menunggu',
-                    'DISETUJUI' => 'Disetujui',
-                    'DITOLAK' => 'Ditolak',
-                    'DIPINJAM' => 'Dipinjam',
-                    'DIKEMBALIKAN' => 'Dikembalikan',
-                    default => $borowing->status,
-                };
+                if ($borowing->is_overdue) {
+                    $badgeClass = 'badge-red';
+                    $statusLabel = 'Terlambat';
+                } else {
+                    $badgeClass = match($st) {
+                        'MENUNGGU' => 'badge-yellow',
+                        'DISETUJUI' => 'badge-blue',
+                        'DITOLAK' => 'badge-red',
+                        'DIPINJAM' => 'badge-purple',
+                                    'TERLAMBAT' => 'badge-danger',
+                        'DIKEMBALIKAN' => 'badge-green',
+                        default => 'badge-gray',
+                    };
+                    $statusLabel = match($st) {
+                        'MENUNGGU' => 'Menunggu',
+                        'DISETUJUI' => 'Disetujui',
+                        'DITOLAK' => 'Ditolak',
+                        'DIPINJAM' => 'Dipinjam',
+                                    'TERLAMBAT' => 'Terlambat',
+                        'DIKEMBALIKAN' => 'Dikembalikan',
+                        default => $borowing->status,
+                    };
+                }
                 @endphp
                 <span class="badge {{ $badgeClass }}" style="font-size:13px;padding:6px 14px">{{ $statusLabel }}</span>
             </div>
@@ -175,9 +182,9 @@ $totalUnit = $borowing->borrowingItems->sum('jumlah_unit');
                     Kembali
                 </a>
                 @if($st === 'MENUNGGU')
-                <form method="POST" action="{{ route('admin.peminjaman.approve', $borowing->id_borrowing) }}" style="display:inline-flex" onsubmit="return confirmAction('Setujui peminjaman ini?')">
+                <form method="POST" action="{{ route('admin.peminjaman.approve', $borowing->id_borrowing) }}" style="display:inline-flex">
                     @csrf
-                    <button class="btn btn-success" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap">
+                    <button class="btn btn-success" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap" data-confirm="Setujui peminjaman ini?">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         Approve
                     </button>
@@ -188,12 +195,12 @@ $totalUnit = $borowing->borrowingItems->sum('jumlah_unit');
                 </button>
                 @endif
                 @if($st === 'DISETUJUI')
-                <form method="POST" action="{{ route('admin.peminjaman.proses', $borowing->id_borrowing) }}" style="display:inline-flex" onsubmit="return confirmAction('Proses peminjaman ini? Status akan berubah menjadi Dipinjam.')">
+                <form method="POST" action="{{ route('admin.peminjaman.proses', $borowing->id_borrowing) }}" style="display:inline-flex">
                     @csrf
-                    <button class="btn btn-info" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap">Proses Peminjaman</button>
+                    <button class="btn btn-info" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap" data-confirm="Proses peminjaman ini? Status akan berubah menjadi Dipinjam.">Proses Peminjaman</button>
                 </form>
                 @endif
-                @if($st === 'DIPINJAM')
+                @if(in_array($st, ['DIPINJAM', 'TERLAMBAT']))
                 <a href="{{ route('admin.peminjaman.kembali-form', $borowing->id_borrowing) }}" class="btn" style="background:#8B5CF6;display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap">Catat Pengembalian</a>
                 @endif
             </div>
@@ -300,3 +307,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+
+

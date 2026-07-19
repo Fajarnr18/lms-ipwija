@@ -19,10 +19,13 @@ class ItemController extends Controller
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
-                $q->where('nama_barang', 'like', "%{$request->search}%")
-                  ->orWhere('kode_barang', 'like', "%{$request->search}%")
-                  ->orWhere('kategori', 'like', "%{$request->search}%");
+                $q->where('kode_barang', 'like', "%{$request->search}%")
+                  ->orWhere('nama_barang', 'like', "%{$request->search}%");
             });
+        }
+
+        if ($request->kategori) {
+            $query->where('kategori', $request->kategori);
         }
 
         if ($request->kondisi) {
@@ -32,13 +35,47 @@ class ItemController extends Controller
         $items = $query->orderBy('created_at', 'desc')->paginate(10);
 
         $mutations = collect();
+        $totalPergerakan = 0;
+        $totalMasuk = 0;
+        $totalKeluar = 0;
+
         if ($request->tab === 'mutasi') {
-            $mutations = ItemMutation::with(['item', 'admin'])
-                ->orderBy('time_stamp', 'desc')
-                ->paginate(20);
+            $mQuery = ItemMutation::with(['item', 'admin']);
+
+            if ($request->search) {
+                $search = $request->search;
+                $mQuery->whereHas('item', function ($q) use ($search) {
+                    $q->where('nama_barang', 'like', "%{$search}%")
+                      ->orWhere('kode_barang', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->from) {
+                $mQuery->whereDate('time_stamp', '>=', $request->from);
+            }
+
+            if ($request->to) {
+                $mQuery->whereDate('time_stamp', '<=', $request->to);
+            }
+
+            if ($request->tipe_mutasi) {
+                $mQuery->where('tipe_mutasi', $request->tipe_mutasi);
+            }
+
+            $totalPergerakan = (clone $mQuery)->count();
+            $totalMasuk = (clone $mQuery)->where('tipe_mutasi', 'Masuk')->count();
+            $totalKeluar = (clone $mQuery)->where('tipe_mutasi', 'Keluar')->count();
+
+            $mutations = $mQuery->orderBy('time_stamp', 'desc')->paginate(20);
         }
 
-        return view('admin.inventaris.index', compact('items', 'mutations'));
+        $totalBarang = Item::count();
+        $baikCount = Item::where('kondisi', 'Baik')->count();
+        $rusakCount = Item::whereIn('kondisi', ['Rusak Ringan', 'Rusak Berat', 'Tidak Layak'])->count();
+        $totalStok = Item::sum('stok');
+        $kategoris = Item::select('kategori')->distinct()->whereNotNull('kategori')->pluck('kategori');
+
+        return view('admin.inventaris.index', compact('items', 'mutations', 'totalPergerakan', 'totalMasuk', 'totalKeluar', 'totalBarang', 'baikCount', 'rusakCount', 'totalStok', 'kategoris'));
     }
 
     public function create(): View
@@ -58,9 +95,34 @@ class ItemController extends Controller
             'kondisi' => 'required|in:Baik,Rusak Ringan,Rusak Berat,Tidak Layak',
             'lokasi' => 'required|string|max:50',
             'tgl_pendataan' => 'required|date',
+            'foto_barang' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
+        ], [
+            'kode_barang.required' => 'Kode barang wajib diisi.',
+            'kode_barang.unique' => 'Kode barang sudah digunakan.',
+            'kode_barang.max' => 'Kode barang maksimal 20 karakter.',
+            'nama_barang.required' => 'Nama barang wajib diisi.',
+            'nama_barang.max' => 'Nama barang maksimal 100 karakter.',
+            'kategori.required' => 'Kategori wajib diisi.',
+            'deskripsi.required' => 'Deskripsi wajib diisi.',
+            'stok.required' => 'Stok wajib diisi.',
+            'stok.integer' => 'Stok harus berupa angka.',
+            'stok.min' => 'Stok tidak boleh negatif.',
+            'satuan.required' => 'Satuan wajib diisi.',
+            'kondisi.required' => 'Kondisi wajib dipilih.',
+            'kondisi.in' => 'Kondisi tidak valid.',
+            'lokasi.required' => 'Lokasi wajib diisi.',
+            'tgl_pendataan.date' => 'Format tanggal tidak valid.',
+            'foto_barang.image' => 'File harus berupa gambar.',
+            'foto_barang.mimes' => 'Format gambar harus png, jpg, jpeg, atau webp.',
+            'foto_barang.max' => 'Ukuran gambar maksimal 2MB.',
         ]);
 
-        $item = Item::create($request->all());
+        $data = $request->except('foto_barang');
+        if ($request->hasFile('foto_barang')) {
+            $data['foto_barang'] = $request->file('foto_barang')->store('inventaris', 'public');
+        }
+
+        $item = Item::create($data);
 
         AuditLogService::log('INVENTARIS', 'CREATE', $item->id_barang, null, $item->toArray());
 
@@ -70,7 +132,13 @@ class ItemController extends Controller
     public function edit(int $id): View
     {
         $item = Item::withTrashed()->findOrFail($id);
-        return view('admin.inventaris.edit', compact('item'));
+        return view('admin.inventaris.edit-form', compact('item'));
+    }
+
+    public function detail(int $id): View
+    {
+        $item = Item::withTrashed()->findOrFail($id);
+        return view('admin.inventaris.detail', compact('item'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -87,14 +155,55 @@ class ItemController extends Controller
             'kondisi' => 'required|in:Baik,Rusak Ringan,Rusak Berat,Tidak Layak',
             'lokasi' => 'required|string|max:50',
             'tgl_pendataan' => 'required|date',
+            'foto_barang' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
+        ], [
+            'kode_barang.required' => 'Kode barang wajib diisi.',
+            'kode_barang.unique' => 'Kode barang sudah digunakan.',
+            'kode_barang.max' => 'Kode barang maksimal 20 karakter.',
+            'nama_barang.required' => 'Nama barang wajib diisi.',
+            'nama_barang.max' => 'Nama barang maksimal 100 karakter.',
+            'kategori.required' => 'Kategori wajib diisi.',
+            'deskripsi.required' => 'Deskripsi wajib diisi.',
+            'stok.required' => 'Stok wajib diisi.',
+            'stok.integer' => 'Stok harus berupa angka.',
+            'stok.min' => 'Stok tidak boleh negatif.',
+            'satuan.required' => 'Satuan wajib diisi.',
+            'kondisi.required' => 'Kondisi wajib dipilih.',
+            'kondisi.in' => 'Kondisi tidak valid.',
+            'lokasi.required' => 'Lokasi wajib diisi.',
+            'tgl_pendataan.required' => 'Tanggal pendataan wajib diisi.',
+            'tgl_pendataan.date' => 'Format tanggal tidak valid.',
+            'foto_barang.image' => 'File harus berupa gambar.',
+            'foto_barang.mimes' => 'Format gambar harus png, jpg, jpeg, atau webp.',
+            'foto_barang.max' => 'Ukuran gambar maksimal 2MB.',
         ]);
 
         $before = $item->toArray();
-        $item->update($request->all());
+        $data = $request->except('foto_barang');
+        
+        if ($request->hasFile('foto_barang')) {
+            if ($item->foto_barang && \Illuminate\Support\Facades\Storage::disk('public')->exists($item->foto_barang)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($item->foto_barang);
+            }
+            $data['foto_barang'] = $request->file('foto_barang')->store('inventaris', 'public');
+        }
+
+        $item->update($data);
 
         AuditLogService::log('INVENTARIS', 'UPDATE', $id, $before, $item->toArray());
 
         return redirect()->route('admin.inventaris.index')->with('success', 'Barang berhasil diperbarui.');
+    }
+
+    public function destroy(int $id): RedirectResponse
+    {
+        $item = Item::withTrashed()->findOrFail($id);
+        $before = $item->toArray();
+        $item->delete();
+
+        AuditLogService::log('INVENTARIS', 'DELETE', $id, $before, null);
+
+        return redirect()->route('admin.inventaris.index')->with('success', 'Barang berhasil dihapus.');
     }
 
     public function mutasi(int $id): View
@@ -110,8 +219,17 @@ class ItemController extends Controller
 
         $request->validate([
             'tipe_mutasi' => 'required|in:Masuk,Keluar,Penyesuaian',
-            'jumlah' => 'required|integer|min:1',
+            'jumlah' => $request->tipe_mutasi === 'Penyesuaian' ? 'required|integer|min:0' : 'required|integer|min:1',
             'keterangan' => 'required|string',
+            'tgl_mutasi' => 'nullable|date',
+        ], [
+            'tipe_mutasi.required' => 'Tipe mutasi wajib dipilih.',
+            'tipe_mutasi.in' => 'Tipe mutasi tidak valid.',
+            'jumlah.required' => 'Jumlah wajib diisi.',
+            'jumlah.integer' => 'Jumlah harus berupa angka.',
+            'jumlah.min' => 'Jumlah harus lebih dari 0.',
+            'keterangan.required' => 'Keterangan wajib diisi.',
+            'tgl_mutasi.date' => 'Format tanggal tidak valid.',
         ]);
 
         $stokSebelum = $item->stok;
@@ -122,7 +240,7 @@ class ItemController extends Controller
         };
 
         if ($request->tipe_mutasi === 'Keluar' && $stokSebelum < $request->jumlah) {
-            return back()->with('error', 'Stok tidak mencukupi untuk mutasi keluar.');
+            return back()->with('error', 'Stok tidak mencukupi.');
         }
 
         DB::transaction(function () use ($request, $item, $stokSebelum, $stokSesudah) {
@@ -136,7 +254,7 @@ class ItemController extends Controller
                 'stok_sesudah' => $stokSesudah,
                 'keterangan' => $request->keterangan,
                 'dilakukan_oleh' => auth()->id(),
-                'time_stamp' => now(),
+                'time_stamp' => $request->tgl_mutasi ? \Carbon\Carbon::parse($request->tgl_mutasi) : now(),
             ]);
 
             AuditLogService::log('INVENTARIS', 'MUTASI', $item->id_barang, ['stok' => $stokSebelum], ['stok' => $stokSesudah]);

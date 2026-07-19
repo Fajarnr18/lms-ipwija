@@ -1,34 +1,23 @@
 @extends('layouts.app')
+@section('header-search')
+<div style="display:flex;align-items:center;gap:8px;flex:1;max-width:500px">
+    <div style="position:relative;flex:1">
+        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#9CA3AF" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" placeholder="Cari peminjaman/alat/status..." style="width:100%;padding:6px 12px 6px 32px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;background:#F9FAFB;outline:none;transition:all .2s" onfocus="this.style.borderColor='#3B82F6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.1)';this.style.background='#fff'" onblur="this.style.borderColor='#E5E7EB';this.style.boxShadow='none';this.style.background='#F9FAFB'">
+    </div>
+    <button type="button" class="btn btn-outline" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:12px;white-space:nowrap">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+        Filter
+    </button>
+</div>
+@endsection
 @section('title', 'Manajemen Peminjaman')
 @section('subtitle', 'Kelola pengajuan peminjaman alat dari civitas akademika')
-
 @section('content')
-<form method="GET" action="{{ route('admin.peminjaman.index') }}" id="filterForm">
-    <div style="display:flex;gap:12px;align-items:center;margin-bottom:24px;flex-wrap:wrap">
-        <div style="flex:1;min-width:200px;position:relative">
-            <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#9CA3AF" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input type="text" name="search" placeholder="Cari peminjaman/alat/status..." value="{{ request('search') }}"
-                style="width:100%;padding:10px 12px 10px 36px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;background:#fff;outline:none;transition:all .2s"
-                onfocus="this.style.borderColor='#3B82F6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,.1)'"
-                onblur="this.style.borderColor='#E5E7EB';this.style.boxShadow='none'">
-        </div>
-        <button type="submit" class="btn" style="padding:10px 20px;background:#1E3A5F;border-radius:8px">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            Cari
-        </button>
-        <a href="{{ route('admin.peminjaman.index') }}" class="btn btn-outline" style="padding:10px 20px;border-radius:8px">Reset</a>
-    </div>
 
-    <div style="margin-bottom:24px">
-        <h1 style="font-size:24px;font-weight:700;color:#1A1A2E;letter-spacing:-.02em;margin:0 0 4px">Manajemen Peminjaman</h1>
-        <p style="font-size:13px;color:#6B7280;margin:0">Kelola pengajuan peminjaman alat dari civitas akademika</p>
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
         <div style="background:#fff;border-radius:10px;border:1px solid #E5E7EB;padding:20px;display:flex;align-items:center;gap:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)">
             <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#F59E0B,#F97316);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <svg width="22" height="22" fill="none" stroke="#fff" viewBox="0 0 24 24">
@@ -64,6 +53,7 @@
         </div>
     </div>
 
+<form method="GET" action="{{ route('admin.peminjaman.index') }}" id="filterForm">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <div style="display:flex;align-items:center;gap:8px">
@@ -158,22 +148,29 @@
                     <td>
                         @php
                         $st = strtoupper(trim($b->status ?? ''));
-                        $badgeClass = match($st) {
-                            'MENUNGGU' => 'badge-yellow',
-                            'DISETUJUI' => 'badge-blue',
-                            'DITOLAK' => 'badge-red',
-                            'DIPINJAM' => 'badge-purple',
-                            'DIKEMBALIKAN' => 'badge-green',
-                            default => 'badge-gray',
-                        };
-                        $statusLabel = match($st) {
-                            'MENUNGGU' => 'Menunggu',
-                            'DISETUJUI' => 'Disetujui',
-                            'DITOLAK' => 'Ditolak',
-                            'DIPINJAM' => 'Dipinjam',
-                            'DIKEMBALIKAN' => 'Dikembalikan',
-                            default => $b->status,
-                        };
+                        if ($b->is_overdue) {
+                            $badgeClass = 'badge-red';
+                            $statusLabel = 'Terlambat';
+                        } else {
+                            $badgeClass = match($st) {
+                                'MENUNGGU' => 'badge-yellow',
+                                'DISETUJUI' => 'badge-blue',
+                                'DITOLAK' => 'badge-red',
+                                'DIPINJAM' => 'badge-purple',
+                                    'TERLAMBAT' => 'badge-danger',
+                                'DIKEMBALIKAN' => 'badge-green',
+                                default => 'badge-gray',
+                            };
+                            $statusLabel = match($st) {
+                                'MENUNGGU' => 'Menunggu',
+                                'DISETUJUI' => 'Disetujui',
+                                'DITOLAK' => 'Ditolak',
+                                'DIPINJAM' => 'Dipinjam',
+                                    'TERLAMBAT' => 'Terlambat',
+                                'DIKEMBALIKAN' => 'Dikembalikan',
+                                default => $b->status,
+                            };
+                        }
                         @endphp
                         <span class="badge {{ $badgeClass }}" style="font-size:11px">{{ $statusLabel }}</span>
                     </td>
@@ -186,9 +183,9 @@
                                 </svg>
                             </a>
                             @if(strtoupper(trim($b->status ?? '')) === 'MENUNGGU')
-                            <form method="POST" action="{{ route('admin.peminjaman.approve', $b->id_borrowing) }}" style="display:inline-flex" onsubmit="return confirmAction('Setujui peminjaman ini?')">
+                            <form method="POST" action="{{ route('admin.peminjaman.approve', $b->id_borrowing) }}" style="display:inline-flex">
                                 @csrf
-                                <button class="btn btn-success btn-sm" style="width:28px;height:28px;padding:0;border-radius:6px;display:inline-flex;align-items:center;justify-content:center" title="Setujui">
+                                <button class="btn btn-success btn-sm" style="width:28px;height:28px;padding:0;border-radius:6px;display:inline-flex;align-items:center;justify-content:center" title="Setujui" data-confirm="Setujui peminjaman ini?">
                                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                                     </svg>
@@ -201,16 +198,16 @@
                             </button>
                             @endif
                             @if(strtoupper(trim($b->status ?? '')) === 'DISETUJUI')
-                            <form method="POST" action="{{ route('admin.peminjaman.proses', $b->id_borrowing) }}" style="display:inline-flex" onsubmit="return confirmAction('Proses peminjaman ini? Alat akan dicatat sebagai sedang dipinjam.')">
+                            <form method="POST" action="{{ route('admin.peminjaman.proses', $b->id_borrowing) }}" style="display:inline-flex">
                                 @csrf
-                                <button class="btn btn-info btn-sm" style="width:28px;height:28px;padding:0;border-radius:6px;display:inline-flex;align-items:center;justify-content:center" title="Proses Peminjaman">
+                                <button class="btn btn-info btn-sm" style="width:28px;height:28px;padding:0;border-radius:6px;display:inline-flex;align-items:center;justify-content:center" title="Proses Peminjaman" data-confirm="Proses peminjaman ini? Alat akan dicatat sebagai sedang dipinjam.">
                                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                     </svg>
                                 </button>
                             </form>
                             @endif
-                            @if(strtoupper(trim($b->status ?? '')) === 'DIPINJAM')
+                            @if(in_array(strtoupper(trim($b->status ?? '')), ['DIPINJAM', 'TERLAMBAT']))
                             <a href="{{ route('admin.peminjaman.aktif') }}" class="btn btn-sm" style="width:28px;height:28px;padding:0;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:#8B5CF6" title="Pengembalian">
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -235,17 +232,9 @@
             </tbody>
         </table>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-top:1px solid #E5E7EB;flex-wrap:wrap;gap:8px">
-        <div style="font-size:13px;color:#6B7280">
-            Menampilkan semua data peminjaman
-            @if($borrowings->total() > 0)
-            <span style="color:#9CA3AF">({{ $borrowings->firstItem() ?? 0 }}-{{ $borrowings->lastItem() ?? 0 }} dari {{ $borrowings->total() }})</span>
-            @endif
-        </div>
-        @if($borrowings->hasPages())
-        <div class="pagination" style="margin:0">{{ $borrowings->appends(request()->query())->links() }}</div>
-        @endif
-    </div>
+    @if($borrowings->hasPages())
+    {{ $borrowings->appends(request()->query())->links() }}
+    @endif
 </div>
 
 <div class="modal-overlay" id="rejectModal">
@@ -316,3 +305,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+

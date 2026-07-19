@@ -23,9 +23,9 @@ class Tool extends Model
         static::saving(function (Tool $tool) {
             if ($tool->stok_tersedia <= 0 && $tool->status_alat === 'TERSEDIA') {
                 $tool->status_alat = 'MAINTENANCE';
-            } elseif ($tool->stok_tersedia > 0 && $tool->status_alat === 'MAINTENANCE') {
-                $tool->status_alat = 'TERSEDIA';
             }
+            // Dihapus pengecekan elseif yang memaksa status menjadi TERSEDIA 
+            // jika stok > 0, karena ini akan menimpa perubahan manual dari Admin.
         });
     }
 
@@ -57,9 +57,26 @@ class Tool extends Model
 
     public function scopeFilterStatus(Builder $query, ?string $status): Builder
     {
-        if ($status) {
+        if ($status === 'RUSAK') {
+            return $query->where(function (Builder $q) {
+                $q->where('status_alat', 'RUSAK')
+                  ->orWhere('stok_rusak', '>', 0);
+            });
+        } elseif ($status) {
             return $query->where('status_alat', $status);
         }
         return $query;
+    }
+
+    public function getFotoUrlAttribute()
+    {
+        if ($this->foto_alat && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->foto_alat)) {
+            return \Illuminate\Support\Facades\Storage::url($this->foto_alat);
+        }
+        if ($this->foto_alat && str_starts_with($this->foto_alat, 'http')) {
+            return $this->foto_alat;
+        }
+        // Fallback auto-generate image from UI Avatars based on tool name
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->nama_alat) . '&background=random&color=fff&size=512';
     }
 }

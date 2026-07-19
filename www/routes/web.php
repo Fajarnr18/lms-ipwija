@@ -94,6 +94,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/laporan', [ReportController::class, 'index'])->name('laporan.index');
         Route::get('/laporan/export', [ReportController::class, 'export'])->name('laporan.export');
+        Route::get('/laporan/pdf', [ReportController::class, 'exportPdf'])->name('laporan.pdf');
 
         Route::get('/audit-trail', [AuditController::class, 'index'])->name('audit-trail.index');
         Route::get('/audit-trail/export', [AuditController::class, 'export'])->name('audit-trail.export');

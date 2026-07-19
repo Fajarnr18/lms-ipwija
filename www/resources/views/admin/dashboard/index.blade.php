@@ -66,14 +66,14 @@
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
-    <div class="card">
+    <div class="card" style="display:flex;flex-direction:column;height:100%">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <h3 style="font-size:14px;font-weight:600;color:#1A1A2E;display:flex;align-items:center;gap:8px">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 Grafik Peminjam per Bulan
             </h3>
         </div>
-        <div style="display:flex;align-items:end;gap:8px;height:140px;padding:0 8px">
+        <div style="display:flex;align-items:end;gap:8px;height:140px;padding:0 8px;margin-top:auto">
             @foreach($chartLabels as $i => $label)
             <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:end">
                 <div style="font-size:10px;font-weight:600;color:#1E3A5F;margin-bottom:4px">{{ $chartData[$i] }}</div>
@@ -84,46 +84,35 @@
         </div>
     </div>
 
-    <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <h3 style="font-size:14px;font-weight:600;color:#1A1A2E;display:flex;align-items:center;gap:8px">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Stok Rendah
+    <div class="card" style="border:1px solid #FECACA;box-shadow:0 4px 6px -1px rgba(239,68,68,0.1);display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:15px;font-weight:700;color:#DC2626;display:flex;align-items:center;gap:6px">
+                <span style="font-size:18px;font-weight:900">!</span> Stok Rendah
             </h3>
-            <a href="{{ route('admin.alat.index') }}" style="font-size:12px;font-weight:500;color:#3B82F6;text-decoration:none">Lihat Semua &rarr;</a>
         </div>
-        <div style="overflow-x:auto">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nama</th>
-                        <th>Kategori</th>
-                        <th>Sisa Stok</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($lowStockTools as $tool)
-                    <tr>
-                        <td style="font-weight:500;color:#1A1A2E">{{ $tool->nama_alat }}</td>
-                        <td>{{ $tool->kategori }}</td>
-                        <td><span class="badge badge-red">{{ $tool->stok_tersedia }}</span></td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="3"><div class="empty-state">Semua stok aman.</div></td>
-                    </tr>
-                    @endforelse
-                    @forelse($lowStockItems as $item)
-                    <tr>
-                        <td style="font-weight:500;color:#1A1A2E">{{ $item->nama_barang }}</td>
-                        <td>{{ $item->kategori }}</td>
-                        <td><span class="badge badge-red">{{ $item->stok }}</span></td>
-                    </tr>
-                    @empty
-                    @endforelse
-                </tbody>
-            </table>
+        <div style="display:flex;flex-direction:column;gap:12px;flex:1">
+            @php 
+                $allLowStocks = collect($lowStockTools)->concat($lowStockItems)->take(3); 
+            @endphp
+            @foreach($allLowStocks as $item)
+            <div style="border:1px solid #FECACA;border-radius:6px;padding:12px;display:flex;justify-content:space-between;align-items:center;background:#FEF2F2">
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:#1A1A2E;margin-bottom:4px">{{ $item->nama_alat ?? $item->nama_barang }}</div>
+                    <div style="font-size:11px;color:#DC2626;font-weight:500">Sisa: {{ $item->stok_tersedia ?? $item->stok }} {{ isset($item->nama_alat) ? 'unit' : 'pack' }}</div>
+                </div>
+                <div style="background:#fff;border:1px solid #E5E7EB;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:600;color:#374151">
+                    Pesan
+                </div>
+            </div>
+            @endforeach
+            
+            @if($allLowStocks->isEmpty())
+            <div class="empty-state" style="color:#DC2626;font-size:12px">Semua stok aman.</div>
+            @endif
         </div>
+        <a href="{{ route('admin.alat.index') }}" class="btn" style="width:100%;justify-content:center;margin-top:16px;background:#fff;border:1px solid #DC2626;color:#DC2626;font-size:12px;font-weight:600;text-decoration:none;padding:8px 0;border-radius:6px;text-align:center;display:block">
+            Lihat Semua
+        </a>
     </div>
 </div>
 

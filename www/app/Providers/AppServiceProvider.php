@@ -14,6 +14,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.custom');
+
         Gate::define('admin-access', function ($user) {
             return $user->role === 'admin' && $user->is_active;
         });

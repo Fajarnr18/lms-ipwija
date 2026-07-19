@@ -14,7 +14,6 @@
 /.zed
 /auth.json
 /node_modules
-/public/build
 /public/hot
 /public/storage
 /storage/*.key
@@ -24,3 +23,23 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Custom exclusions
+*.sql
+*.json
+!composer.json
+!package.json
+!package-lock.json
+!public/build/manifest.json
+test_*.php
+insert_*.php
+update_*.php
+fix_*.php
+check_*.php
+map_*.php
+parse_*.php
+restore_*.php
+get_*.php
+create_*.php
+.opencode/
+admin-panel/

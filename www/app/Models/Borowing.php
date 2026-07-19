@@ -35,17 +35,24 @@ class Borowing extends Model
 
     public function mahasiswa()
     {
-        return $this->belongsTo(User::class, 'mahasiswa_id');
+        return $this->belongsTo(User::class, 'mahasiswa_id')->withTrashed();
     }
 
     public function prosesOleh()
     {
-        return $this->belongsTo(User::class, 'diproses_oleh');
+        return $this->belongsTo(User::class, 'diproses_oleh')->withTrashed();
     }
 
     public function borrowingItems()
     {
         return $this->hasMany(BorrowingItem::class, 'borrowing_id', 'id_borrowing');
+    }
+
+    public function getIsOverdueAttribute(): bool
+    {
+        return strtoupper(trim($this->status ?? '')) === 'DIPINJAM'
+            && $this->tgl_rencana_kembali
+            && $this->tgl_rencana_kembali->isPast();
     }
 
     public function scopeSearch(Builder $query, ?string $search): Builder
@@ -61,3 +68,4 @@ class Borowing extends Model
         return $query;
     }
 }
+

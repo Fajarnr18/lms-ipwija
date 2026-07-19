@@ -89,6 +89,10 @@
                             <input type="radio" name="status_alat" value="MAINTENANCE" {{ old('status_alat', $tool->status_alat) === 'MAINTENANCE' ? 'checked' : '' }} style="width:auto">
                             Maintenance
                         </label>
+                        <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid #E5E7EB;border-radius:6px;cursor:pointer;transition:all .15s;font-size:13px;font-weight:500">
+                            <input type="radio" name="status_alat" value="RUSAK" {{ old('status_alat', $tool->status_alat) === 'RUSAK' ? 'checked' : '' }} style="width:auto">
+                            Rusak
+                        </label>
                     </div>
                     @error('status_alat')<div class="error-text">{{ $message }}</div>@enderror
                 </div>
@@ -116,11 +120,9 @@
 
                 <div class="form-group" style="margin-bottom:0">
                     <label>Foto Alat</label>
-                    @if($tool->foto_alat)
-                        <div style="margin-bottom:8px">
-                            <img src="{{ asset('storage/' . $tool->foto_alat) }}" alt="Foto {{ $tool->nama_alat }}" style="width:100%;max-height:160px;object-fit:cover;border-radius:6px">
+                        <div style="margin-bottom:12px">
+                            <img src="{{ $tool->foto_url }}" alt="Foto {{ $tool->nama_alat }}" style="width:100%;max-height:160px;object-fit:cover;border-radius:6px">
                         </div>
-                    @endif
                     <input type="file" name="foto_alat" accept="image/png,image/jpeg,image/jpg,image/webp" style="padding:6px 12px">
                     @error('foto_alat')<div class="error-text">{{ $message }}</div>@enderror
                 </div>

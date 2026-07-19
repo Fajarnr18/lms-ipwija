@@ -55,6 +55,9 @@
         .error-text { font-size: 12px; color: #EF4444; margin-top: 4px; }
         .term-note { text-align: center; font-size: 11px; color: #9CA3AF; margin-top: 12px; line-height: 1.5; }
         .term-note a { color: #3B82F6; text-decoration: none; }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:50; display:none; align-items:center; justify-content:center; padding:20px; }
+        .modal-overlay.show { display:flex; }
+        .modal { background:#fff; border-radius:16px; padding:32px; width:100%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,.15); position:relative; }
     </style>
 </head>
 <body>
@@ -80,19 +83,12 @@
                         <p>Daftar sebagai mahasiswa atau dosen untuk memulai</p>
                     </div>
                     @if ($errors->any())
-                    <div class="alert alert-error">
-                        <span>&#9888;</span>
-                        <div>
-                            @foreach ($errors->all() as $error)
-                            {{ $error }}@if(!$loop->last)<br>@endif
-                            @endforeach
-                        </div>
-                    </div>
+                    <script>document.addEventListener('DOMContentLoaded',function(){showNotifModal('error','{{ $errors->first() }}');});</script>
                     @endif
                     @if (session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
+                    <script>document.addEventListener('DOMContentLoaded',function(){showNotifModal('success','{{ session('success') }}');});</script>
                     @endif
-                    <form method="POST" action="{{ route('register') }}">
+                    <form method="POST" action="{{ route('register') }}" novalidate>
                         @csrf
                         <div class="input-group">
                             <label for="nama_lengkap">Nama Lengkap</label>
@@ -107,34 +103,34 @@
                                 <label for="nim">NIM / NUPTK</label>
                                 <div class="input-wrap">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/></svg>
-                                    <input id="nim" type="text" name="nim" value="{{ old('nim') }}" required placeholder="12 digit NIM / 16 digit NUPTK">
+                                    <input id="nim" type="text" name="nim" value="{{ old('nim') }}" required placeholder="Masukkan NIM atau NUPTK">
                                 </div>
                                 @error('nim')<div class="error-text">{{ $message }}</div>@enderror
                             </div>
+
                             <div class="input-group">
-                                <label for="email">Email</label>
+                                <label for="program_studi">Program Studi</label>
                                 <div class="input-wrap">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                    <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="Email aktif">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                        <select id="program_studi" name="program_studi" required>
+                                            <option value="">Pilih Program Studi</option>
+                                            <option value="Informatika" @selected(old('program_studi') == 'Informatika')>Informatika</option>
+                                            <option value="Rekayasa Perangkat Lunak" @selected(old('program_studi') == 'Rekayasa Perangkat Lunak')>Rekayasa Perangkat Lunak</option>
+                                            <option value="Sistem Informasi" @selected(old('program_studi') == 'Sistem Informasi')>Sistem Informasi</option>
+                                            <option value="Kebidanan" @selected(old('program_studi') == 'Kebidanan')>Kebidanan</option>
+                                        </select>
                                 </div>
-                                @error('email')<div class="error-text">{{ $message }}</div>@enderror
+                                @error('program_studi')<div class="error-text">{{ $message }}</div>@enderror
                             </div>
                         </div>
+
                         <div class="input-group">
-                            <label for="program_studi">Program Studi</label>
+                            <label for="email">Email</label>
                             <div class="input-wrap">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                                <select id="program_studi" name="program_studi" required>
-                                    <option value="">Pilih Program Studi</option>
-                                    <option value="Teknik Informatika" @selected(old('program_studi') == 'Teknik Informatika')>Teknik Informatika</option>
-                                    <option value="Sistem Informasi" @selected(old('program_studi') == 'Sistem Informasi')>Sistem Informasi</option>
-                                    <option value="Manajemen" @selected(old('program_studi') == 'Manajemen')>Manajemen</option>
-                                    <option value="Akuntansi" @selected(old('program_studi') == 'Akuntansi')>Akuntansi</option>
-                                    <option value="Teknik Elektro" @selected(old('program_studi') == 'Teknik Elektro')>Teknik Elektro</option>
-                                    <option value="Teknik Sipil" @selected(old('program_studi') == 'Teknik Sipil')>Teknik Sipil</option>
-                                </select>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="Email aktif">
                             </div>
-                            @error('program_studi')<div class="error-text">{{ $message }}</div>@enderror
+                            @error('email')<div class="error-text">{{ $message }}</div>@enderror
                         </div>
                         <div class="form-row">
                             <div class="input-group">
@@ -149,11 +145,42 @@
                                 <label for="konfirmasi_password">Konfirmasi Password</label>
                                 <div class="input-wrap">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                    <input id="konfirmasi_password" type="password" name="konfirmasi_password" required placeholder="Ulangi password">
+                                    <input id="password_confirmation" type="password" name="password_confirmation" required placeholder="Ulangi password">
                                 </div>
-                                @error('konfirmasi_password')<div class="error-text">{{ $message }}</div>@enderror
+                                @error('password_confirmation')<div class="error-text">{{ $message }}</div>@enderror
                             </div>
                         </div>
+                        
+                        <div class="input-group">
+                            <label for="no_whatsapp">No. Whatsapp (Opsional)</label>
+                            <div class="input-wrap">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                <input id="no_whatsapp" type="text" inputmode="numeric" name="no_whatsapp" value="{{ old('no_whatsapp') }}" minlength="10" maxlength="13" placeholder="Contoh: 08123456789" oninput="this.value = this.value.replace(/[^0-9]/g, ''); toggleNotifikasi(this.value)">
+                            </div>
+                            @error('no_whatsapp')<div class="error-text">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="input-group" id="notifikasi_group" style="opacity: 0.5; pointer-events: none;">
+                            <label>Jenis Notifikasi</label>
+                            <div style="display:flex; gap:16px; margin-top:8px;">
+                                <label style="display:flex; align-items:center; gap:6px; font-weight:normal; font-size:13px; margin:0; cursor:pointer;">
+                                    <input type="radio" id="notif_email" name="jenis_notifikasi" value="Email" @checked(old('jenis_notifikasi', 'Email') == 'Email') disabled>
+                                    Email
+                                </label>
+                                <label style="display:flex; align-items:center; gap:6px; font-weight:normal; font-size:13px; margin:0; cursor:pointer;">
+                                    <input type="radio" id="notif_wa" name="jenis_notifikasi" value="Whatsapp" @checked(old('jenis_notifikasi') == 'Whatsapp') disabled>
+                                    Whatsapp
+                                </label>
+                            </div>
+                            @error('jenis_notifikasi')<div class="error-text">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="input-group" style="display:flex;align-items:flex-start;gap:12px;margin-bottom:24px;">
+                            <input type="checkbox" id="terms" name="terms" required style="width:auto;margin-top:2px;">
+                            <label for="terms" style="margin-bottom:0;line-height:1.4;font-size:12px;color:#6B7280;font-weight:normal;">saya menyetujui syarat dan ketentuan yang berlaku di lingkungan Laboratorium IPWIJA.</label>
+                            @error('terms')<div class="error-text" style="width:100%;">{{ $message }}</div>@enderror
+                        </div>
+
                         <button type="submit" class="btn-register">Daftar Sekarang</button>
                     </form>
                     <div class="login-link">
@@ -166,5 +193,59 @@
             </div>
         </div>
     </div>
+
+    <div class="modal-overlay" id="notifModal">
+        <div class="modal" style="text-align:center;max-width:400px">
+            <div id="notifIcon" style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"></div>
+            <h2 id="notifTitle" style="font-size:17px;font-weight:700;margin:0 0 8px;color:#1A1A2E"></h2>
+            <p id="notifMessage" style="font-size:14px;color:#6B7280;margin:0 0 24px;line-height:1.5"></p>
+            <button class="btn" onclick="closeNotifModal()" style="min-width:100px;justify-content:center;padding:10px 24px;font-size:14px;font-weight:600">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+    function showNotifModal(type, message) {
+        var iconEl = document.getElementById('notifIcon');
+        var titleEl = document.getElementById('notifTitle');
+        var msgEl = document.getElementById('notifMessage');
+        msgEl.textContent = message;
+        if (type === 'success') {
+            iconEl.style.background = '#D1FAE5';
+            iconEl.innerHTML = '<svg width="28" height="28" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
+            titleEl.textContent = 'Berhasil';
+        } else {
+            iconEl.style.background = '#FEE2E2';
+            iconEl.innerHTML = '<svg width="28" height="28" fill="none" stroke="#DC2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>';
+            titleEl.textContent = 'Gagal';
+        }
+        document.getElementById('notifModal').classList.add('show');
+    }
+    function closeNotifModal() {
+        document.getElementById('notifModal').classList.remove('show');
+    }
+    
+    function toggleNotifikasi(val) {
+        var group = document.getElementById('notifikasi_group');
+        var notifEmail = document.getElementById('notif_email');
+        var notifWa = document.getElementById('notif_wa');
+        if(val.trim() !== '') {
+            group.style.opacity = '1';
+            group.style.pointerEvents = 'auto';
+            notifEmail.removeAttribute('disabled');
+            notifWa.removeAttribute('disabled');
+        } else {
+            group.style.opacity = '0.5';
+            group.style.pointerEvents = 'none';
+            notifEmail.setAttribute('disabled', 'disabled');
+            notifWa.setAttribute('disabled', 'disabled');
+            notifEmail.checked = true;
+        }
+    }
+    
+    // Initialize state on load
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleNotifikasi(document.getElementById('no_whatsapp').value);
+    });
+    </script>
 </body>
 </html>

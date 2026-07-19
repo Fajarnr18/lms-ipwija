@@ -43,8 +43,9 @@
         .input-group .input-wrap:focus-within { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
         .input-group input:focus { outline: none; }
         .input-group input::placeholder { color: #9CA3AF; }
-        .input-group .toggle-pw { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9CA3AF; cursor: pointer; padding: 2px; display: flex; align-items: center; justify-content: center; }
-        .input-group .input-wrap .pw-input { padding-right: 48px; }
+        input[type="password"]::-ms-reveal, input[type="password"]::-ms-clear { display: none; }
+        .input-group .toggle-pw { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9CA3AF; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all .15s; }
+        .input-group .toggle-pw:hover { background: #F3F4F6; color: #4B5563; }
         .checkbox-row { display: flex; align-items: center; gap: 8px; }
         .checkbox-row input[type=checkbox] { width: 16px; height: 16px; accent-color: #1E3A5F; cursor: pointer; margin: 0; }
         .checkbox-row label { font-size: 13px; color: #4B5563; cursor: pointer; margin: 0; }
@@ -68,6 +69,9 @@
         .alert-success { background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; }
         .alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
         .error-text { font-size: 12px; color: #EF4444; margin-top: 4px; }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:50; display:none; align-items:center; justify-content:center; padding:20px; }
+        .modal-overlay.show { display:flex; }
+        .modal { background:#fff; border-radius:16px; padding:32px; width:100%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,.15); position:relative; }
     </style>
 </head>
 <body>
@@ -94,19 +98,10 @@
                         <p>Masuk ke akun Anda untuk melanjutkan</p>
                     </div>
                     @if(session('success'))
-                    <div class="alert alert-success">
-                        <span>&#10003;</span> {{ session('success') }}
-                    </div>
+                    <script>document.addEventListener('DOMContentLoaded',function(){showNotifModal('success','{{ session('success') }}');});</script>
                     @endif
                     @if ($errors->any())
-                    <div class="alert alert-error">
-                        <span>&#9888;</span>
-                        <div>
-                            @foreach ($errors->all() as $error)
-                            {{ $error }}@if(!$loop->last)<br>@endif
-                            @endforeach
-                        </div>
-                    </div>
+                    <script>document.addEventListener('DOMContentLoaded',function(){showNotifModal('error','{{ $errors->first() }}');});</script>
                     @endif
                     <form method="POST" action="{{ route('login') }}" onsubmit="document.querySelector('.btn-login').classList.add('loading')">
                         @csrf
@@ -120,21 +115,17 @@
                         <div class="input-group">
                             <label for="password">Kata Sandi</label>
                             <div class="input-wrap">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                <input id="password" type="password" name="password" required placeholder="Masukkan kata sandi" class="pw-input">
+                                <input id="password" type="password" name="password" required placeholder="Masukkan kata sandi" style="padding:10px 48px 10px 12px">
                                 <button type="button" class="toggle-pw" onclick="togglePassword()" id="toggleBtn">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 </button>
                             </div>
                         </div>
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
                             <label class="checkbox-row">
                                 <input type="checkbox" name="remember" id="remember">
-                                <label for="remember">Ingat saya</label>
+                                <span>Ingat saya</span>
                             </label>
-                            <div class="forgot-row">
-                                <a href="#">Lupa password?</a>
-                            </div>
                         </div>
                         <button type="submit" class="btn-login">
                             <svg class="btn-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
@@ -156,11 +147,42 @@
         var btn = document.getElementById('toggleBtn');
         if (pw.type === 'password') {
             pw.type = 'text';
-            btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-2.887m2.184-2.158A9.96 9.96 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.066 10.066 0 01-2.162 3.253"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"/></svg>';
+            btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-2.887m2.184-2.158A9.96 9.96 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.066 10.066 0 01-2.162 3.253"/><path d="M3 3l18 18"/></svg>';
         } else {
             pw.type = 'password';
-            btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
+            btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
         }
+    }
+    </script>
+
+    <div class="modal-overlay" id="notifModal">
+        <div class="modal" style="text-align:center;max-width:400px">
+            <div id="notifIcon" style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"></div>
+            <h2 id="notifTitle" style="font-size:17px;font-weight:700;margin:0 0 8px;color:#1A1A2E"></h2>
+            <p id="notifMessage" style="font-size:14px;color:#6B7280;margin:0 0 24px;line-height:1.5"></p>
+            <button class="btn" onclick="closeNotifModal()" style="min-width:100px;justify-content:center;padding:10px 24px;font-size:14px;font-weight:600">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+    function showNotifModal(type, message) {
+        var iconEl = document.getElementById('notifIcon');
+        var titleEl = document.getElementById('notifTitle');
+        var msgEl = document.getElementById('notifMessage');
+        msgEl.textContent = message;
+        if (type === 'success') {
+            iconEl.style.background = '#D1FAE5';
+            iconEl.innerHTML = '<svg width="28" height="28" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
+            titleEl.textContent = 'Berhasil';
+        } else {
+            iconEl.style.background = '#FEE2E2';
+            iconEl.innerHTML = '<svg width="28" height="28" fill="none" stroke="#DC2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>';
+            titleEl.textContent = 'Gagal';
+        }
+        document.getElementById('notifModal').classList.add('show');
+    }
+    function closeNotifModal() {
+        document.getElementById('notifModal').classList.remove('show');
     }
     </script>
 </body>

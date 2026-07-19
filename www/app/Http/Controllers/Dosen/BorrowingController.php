@@ -45,7 +45,7 @@ class BorrowingController extends Controller
 
     public function exportPdf(int $id)
     {
-        $borowing = Borowing::with(['borrowingItems.tool', 'user', 'prosesOleh'])
+        $borowing = Borowing::with(['borrowingItems.tool', 'mahasiswa', 'prosesOleh'])
             ->findOrFail($id);
 
         if ($borowing->mahasiswa_id !== auth()->id()) {

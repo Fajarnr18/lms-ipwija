@@ -59,10 +59,8 @@ class BorrowingController extends Controller
         $borrowings = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
         $countMenunggu = Borowing::where('status', 'MENUNGGU')->count();
-        $countDipinjam = Borowing::where('status', 'DIPINJAM')->count();
-        $countTerlambat = Borowing::where('status', 'DIPINJAM')
-            ->whereDate('tgl_rencana_kembali', '<', now())
-            ->count();
+        $countDipinjam = Borowing::whereIn('status', ['DIPINJAM', 'TERLAMBAT'])->count();
+        $countTerlambat = Borowing::where('status', 'TERLAMBAT')->count();
 
         return view('admin.peminjaman.index', compact(
             'borrowings', 'countMenunggu', 'countDipinjam', 'countTerlambat'
@@ -172,12 +170,7 @@ class BorrowingController extends Controller
             ]);
 
             AuditLogService::log('PEMINJAMAN', 'APPROVE', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
-            N8NWebhookService::send('approved', [
-                'borrowingId' => $borowing->id_borrowing,
-                'userName' => $borowing->mahasiswa?->nama_lengkap,
-                'email' => $borowing->mahasiswa?->email,
-                'tanggalPinjam' => $borowing->tgl_rencana_pinjam?->format('Y-m-d'),
-            ]);
+            N8NWebhookService::sendBorrowingNotification($borowing, 'approved', 'Pengajuan peminjaman Anda telah disetujui.');
         });
 
         return redirect()->back()->with('success', 'Peminjaman berhasil disetujui.');
@@ -214,12 +207,7 @@ class BorrowingController extends Controller
             ]);
 
             AuditLogService::log('PEMINJAMAN', 'REJECT', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
-            N8NWebhookService::send('rejected', [
-                'borrowingId' => $borowing->id_borrowing,
-                'userName' => $borowing->mahasiswa?->nama_lengkap,
-                'email' => $borowing->mahasiswa?->email,
-                'alasanPenolakan' => $request->catatan_admin,
-            ]);
+            N8NWebhookService::sendBorrowingNotification($borowing, 'rejected', 'Peminjaman Anda ditolak.');
         });
 
         return redirect()->back()->with('success', 'Peminjaman ditolak.');
@@ -241,6 +229,9 @@ class BorrowingController extends Controller
             ]);
 
             AuditLogService::log('PEMINJAMAN', 'PROSES', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
+            
+            // Menggunakan event 'processed' seperti semula, trik dipindah ke Service
+            N8NWebhookService::sendBorrowingNotification($borowing, 'processed', 'Peminjaman alat Anda sedang diproses. Silakan ambil alat di laboratorium.');
         });
 
         return redirect()->back()->with('success', 'Peminjaman sedang diproses.');
@@ -249,7 +240,7 @@ class BorrowingController extends Controller
     public function aktif(Request $request): View
     {
         $query = Borowing::with(['mahasiswa', 'borrowingItems.tool'])
-            ->whereIn('status', ['DISETUJUI', 'DIPINJAM', 'DIKEMBALIKAN']);
+            ->whereIn('status', ['DISETUJUI', 'DIPINJAM', 'TERLAMBAT', 'DIKEMBALIKAN']);
 
         if ($search = $request->search) {
             $query->where(function ($q) use ($search) {
@@ -267,7 +258,7 @@ class BorrowingController extends Controller
             ->whereDate('tgl_pengembalian_aktual', today())
             ->count();
 
-        $menungguVerifikasi = Borowing::where('status', 'DIPINJAM')->count();
+        $menungguVerifikasi = Borowing::whereIn('status', ['DIPINJAM', 'TERLAMBAT'])->count();
 
         $alatRusak = BorrowingItem::whereIn('kondisi_saat_kembali', ['Rusak Ringan', 'Rusak Berat'])
             ->whereHas('borowing', function ($q) {
@@ -299,24 +290,59 @@ class BorrowingController extends Controller
         DB::transaction(function () use ($request, $borowing) {
             $old = $borowing->toArray();
 
+            // Kelompokkan item berdasarkan id_borrowings_item dan kondisi
+            $groupedItems = [];
             foreach ($request->items as $itemData) {
-                $item = BorrowingItem::findOrFail($itemData['id_borrowings_item']);
+                $id = $itemData['id_borrowings_item'];
+                $kondisi = $itemData['kondisi_saat_kembali'];
+                
+                if (!isset($groupedItems[$id])) {
+                    $groupedItems[$id] = [];
+                }
+                if (!isset($groupedItems[$id][$kondisi])) {
+                    $groupedItems[$id][$kondisi] = 0;
+                }
+                $groupedItems[$id][$kondisi]++;
+            }
 
-                $item->update([
-                    'kondisi_saat_kembali' => $itemData['kondisi_saat_kembali'],
-                    'catatan_pengembalian' => $itemData['catatan_pengembalian'] ?? null,
-                ]);
+            foreach ($groupedItems as $id => $kondisiCounts) {
+                $originalItem = BorrowingItem::findOrFail($id);
+                $isFirst = true;
 
-                if (in_array($itemData['kondisi_saat_kembali'], ['Rusak Ringan', 'Rusak Berat', 'Tidak Layak'])) {
-                    Tool::where('id_alat', $item->tool_id)
-                        ->decrement('stok_total', $item->jumlah_unit);
-                } else {
-                    Tool::where('id_alat', $item->tool_id)
-                        ->increment('stok_tersedia', $item->jumlah_unit);
+                foreach ($kondisiCounts as $kondisi => $count) {
+                    if ($isFirst) {
+                        // Update item yang sudah ada
+                        $originalItem->update([
+                            'jumlah_unit' => $count,
+                            'kondisi_saat_kembali' => $kondisi,
+                        ]);
+                        $isFirst = false;
+                    } else {
+                        // Buat item baru jika kondisinya berbeda untuk sisa unit
+                        BorrowingItem::create([
+                            'borrowing_id' => $originalItem->borrowing_id,
+                            'tool_id' => $originalItem->tool_id,
+                            'jumlah_unit' => $count,
+                            'kondisi_saat_kembali' => $kondisi,
+                            'catatan_pengembalian' => null,
+                        ]);
+                    }
 
-                    $t = Tool::find($item->tool_id);
-                    if ($t && $t->stok_tersedia > 0 && $t->status_alat === 'MAINTENANCE') {
-                        $t->update(['status_alat' => 'TERSEDIA']);
+                    // Update stok alat berdasarkan jumlah ($count) yang spesifik untuk kondisi ini
+                    if (in_array($kondisi, ['Rusak Ringan', 'Rusak Berat', 'Tidak Layak'])) {
+                        $t = Tool::find($originalItem->tool_id);
+                        if ($t) {
+                            $t->decrement('stok_total', $count);
+                            $t->increment('stok_rusak', $count);
+                        }
+                    } else {
+                        Tool::where('id_alat', $originalItem->tool_id)
+                            ->increment('stok_tersedia', $count);
+
+                        $t = Tool::find($originalItem->tool_id);
+                        if ($t && $t->stok_tersedia > 0 && $t->status_alat === 'MAINTENANCE') {
+                            $t->update(['status_alat' => 'TERSEDIA']);
+                        }
                     }
                 }
             }
@@ -333,14 +359,23 @@ class BorrowingController extends Controller
             $borowing->update($updateData);
 
             AuditLogService::log('PEMINJAMAN', 'RETURN', $borowing->id_borrowing, $old, $borowing->fresh()->toArray());
-            N8NWebhookService::send('returned', [
-                'borrowingId' => $borowing->id_borrowing,
-                'userName' => $borowing->mahasiswa?->nama_lengkap,
-                'email' => $borowing->mahasiswa?->email,
-            ]);
+            $borowing->load('borrowingItems.tool');
+
+            $returnedItems = [];
+            foreach ($borowing->borrowingItems as $item) {
+                $returnedItems[] = [
+                    'nama_alat' => $item->tool?->nama_alat,
+                    'jumlah' => $item->jumlah_unit,
+                    'kondisi' => $item->kondisi_saat_kembali,
+                ];
+            }
+
+            N8NWebhookService::sendBorrowingNotification($borowing, 'returned', 'Alat berhasil dikembalikan.');
         });
 
         return redirect()->route('admin.peminjaman.aktif')
             ->with('success', 'Pengembalian berhasil dicatat.');
     }
 }
+
+

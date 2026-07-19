@@ -20,6 +20,8 @@ class RegisterRequest extends FormRequest
             'password' => 'required|string|min:8',
             'konfirmasi_password' => 'required|string|same:password',
             'program_studi' => 'required|string|max:255',
+            'no_whatsapp' => 'nullable|numeric|digits_between:10,13',
+            'jenis_notifikasi' => 'nullable|in:Email,Whatsapp',
         ];
     }
 
@@ -37,6 +39,8 @@ class RegisterRequest extends FormRequest
             'password.required' => 'Password wajib diisi.',
             'konfirmasi_password.required' => 'Konfirmasi password wajib diisi.',
             'program_studi.required' => 'Program studi wajib diisi.',
+            'no_whatsapp.numeric' => 'Nomor WhatsApp harus berupa angka.',
+            'no_whatsapp.digits_between' => 'Nomor WhatsApp harus antara 10 hingga 13 digit.',
         ];
     }
 }

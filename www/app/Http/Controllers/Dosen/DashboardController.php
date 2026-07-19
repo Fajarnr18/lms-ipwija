@@ -13,27 +13,37 @@ class DashboardController extends Controller
     {
         $userId = auth()->id();
 
-        $activeBorrowing = Borowing::where('mahasiswa_id', $userId)
-            ->whereIn('status', ['DISETUJUI', 'DIPINJAM'])
+        $activeBorrowings = Borowing::where('mahasiswa_id', $userId)
+            ->whereIn('status', ['DISETUJUI', 'DIPINJAM', 'TERLAMBAT'])
             ->with(['borrowingItems.tool'])
             ->latest()
-            ->first();
+            ->get();
 
         $recentBorrowings = Borowing::where('mahasiswa_id', $userId)
             ->latest()
             ->take(5)
             ->get();
 
+        $recentActivity = Borowing::where('mahasiswa_id', $userId)
+            ->whereIn('status', ['MENUNGGU', 'DISETUJUI', 'DITOLAK', 'DIKEMBALIKAN', 'DIPINJAM', 'TERLAMBAT'])
+            ->with(['borrowingItems.tool'])
+            ->latest('updated_at')
+            ->take(5)
+            ->get();
+
         $availableTools = Tool::tersedia()->count();
 
         $countMenunggu = Borowing::where('mahasiswa_id', $userId)->where('status', 'MENUNGGU')->count();
-        $countBerjalan = Borowing::where('mahasiswa_id', $userId)->whereIn('status', ['DISETUJUI', 'DIPINJAM'])->count();
+        $countBerjalan = Borowing::where('mahasiswa_id', $userId)->whereIn('status', ['DISETUJUI', 'DIPINJAM', 'TERLAMBAT'])->count();
         $countSelesai = Borowing::where('mahasiswa_id', $userId)->where('status', 'DIKEMBALIKAN')->count();
-        $cartCount = count(session('cart', []));
+        $cartCount = collect(session('cart', []))->sum('jumlah_unit');
+
+        $userName = ucwords(mb_strtolower(auth()->user()->nama_lengkap));
 
         return view('dosen.dashboard.index', compact(
-            'activeBorrowing', 'recentBorrowings', 'availableTools',
-            'countMenunggu', 'countBerjalan', 'countSelesai', 'cartCount'
+            'activeBorrowings', 'recentBorrowings', 'recentActivity', 'availableTools',
+            'countMenunggu', 'countBerjalan', 'countSelesai', 'cartCount', 'userName'
         ));
     }
 }
+

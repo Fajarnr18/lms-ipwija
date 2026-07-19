@@ -9,7 +9,7 @@
             <label>Filter Status</label>
             <select name="status" onchange="this.form.submit()">
                 <option value="">Semua</option>
-                @foreach(['MENUNGGU', 'DISETUJUI', 'DITOLAK', 'DIPINJAM', 'DIKEMBALIKAN'] as $s)
+                @foreach(['MENUNGGU', 'DISETUJUI', 'DITOLAK', 'DIPINJAM', 'TERLAMBAT', 'DIKEMBALIKAN'] as $s)
                 <option value="{{ $s }}" @selected(request('status')===$s)>{{ ucfirst(strtolower($s)) }}</option>
                 @endforeach
             </select>
@@ -47,6 +47,7 @@
                             'DISETUJUI' => 'badge-blue',
                             'DITOLAK' => 'badge-red',
                             'DIPINJAM' => 'badge-purple',
+                                    'TERLAMBAT' => 'badge-danger',
                             'DIKEMBALIKAN' => 'badge-green',
                             default => 'badge-gray',
                         };
@@ -55,6 +56,7 @@
                             'DISETUJUI' => 'Disetujui',
                             'DITOLAK' => 'Ditolak',
                             'DIPINJAM' => 'Dipinjam',
+                                    'TERLAMBAT' => 'Terlambat',
                             'DIKEMBALIKAN' => 'Dikembalikan',
                             default => $b->status,
                         };
@@ -74,7 +76,9 @@
         </table>
     </div>
     @if($borrowings->hasPages())
-    <div class="pagination">{{ $borrowings->appends(request()->query())->links() }}</div>
+    {{ $borrowings->appends(request()->query())->links() }}
     @endif
 </div>
 @endsection
+
+

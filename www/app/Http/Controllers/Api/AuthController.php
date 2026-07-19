@@ -37,6 +37,8 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'program_studi' => $request->program_studi,
                 'password' => $request->password,
+                'no_whatsapp' => $request->no_whatsapp,
+                'jenis_notifikasi' => $request->no_whatsapp ? ($request->jenis_notifikasi ?? 'Email') : 'Email',
                 'role' => 'dosen',
                 'is_active' => true,
             ];
@@ -47,6 +49,8 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'program_studi' => $request->program_studi,
                 'password' => $request->password,
+                'no_whatsapp' => $request->no_whatsapp,
+                'jenis_notifikasi' => $request->no_whatsapp ? ($request->jenis_notifikasi ?? 'Email') : 'Email',
                 'role' => 'mahasiswa',
                 'is_active' => true,
             ];

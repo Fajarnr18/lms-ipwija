@@ -13,7 +13,7 @@ class DashboardController extends Controller
     public function admin(): JsonResponse
     {
         $totalAlat = Tool::count();
-        $peminjamanAktif = Borowing::whereIn('status', ['DISETUJUI', 'DIPINJAM'])->count();
+        $peminjamanAktif = Borowing::whereIn('status', ['DISETUJUI', 'DIPINJAM', 'TERLAMBAT'])->count();
         $stokRendah = Tool::where('stok_tersedia', '<=', 3)->count();
         $totalMahasiswa = User::where('role', 'mahasiswa')->count();
         $totalDosen = User::where('role', 'dosen')->count();
@@ -33,7 +33,7 @@ class DashboardController extends Controller
     {
         $userId = auth()->id();
         $countMenunggu = Borowing::where('mahasiswa_id', $userId)->where('status', 'MENUNGGU')->count();
-        $countBerjalan = Borowing::where('mahasiswa_id', $userId)->whereIn('status', ['DISETUJUI', 'DIPINJAM'])->count();
+        $countBerjalan = Borowing::where('mahasiswa_id', $userId)->whereIn('status', ['DISETUJUI', 'DIPINJAM', 'TERLAMBAT'])->count();
         $countSelesai = Borowing::where('mahasiswa_id', $userId)->where('status', 'DIKEMBALIKAN')->count();
         $cartCount = count(session('cart', []));
 
@@ -52,3 +52,4 @@ class DashboardController extends Controller
         return $this->mahasiswa();
     }
 }
+

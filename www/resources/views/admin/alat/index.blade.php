@@ -31,6 +31,7 @@
                 <option value="">Semua Status</option>
                 <option value="TERSEDIA" @selected(request('status_alat') === 'TERSEDIA')>Tersedia</option>
                 <option value="MAINTENANCE" @selected(request('status_alat') === 'MAINTENANCE')>Maintenance</option>
+                <option value="RUSAK" @selected(request('status_alat') === 'RUSAK')>Rusak</option>
             </select>
         </div>
         <button type="submit" class="btn btn-sm" style="margin-bottom:0">Cari</button>
@@ -104,29 +105,35 @@
                     <td style="font-weight:600;color:#1A1A2E">{{ $tool->kode_alat }}</td>
                     <td>{{ $tool->nama_alat }}</td>
                     <td>{{ $tool->kategori }}</td>
-                    <td>{{ $tool->stok_tersedia }}/{{ $tool->stok_total }}</td>
+                    <td>
+                        {{ $tool->stok_tersedia }}/{{ $tool->stok_total }}
+                        @if($tool->stok_rusak > 0)
+                        <br><span style="color:#EF4444;font-size:11px;font-weight:600">{{ $tool->stok_rusak }} Rusak</span>
+                        @endif
+                    </td>
                     <td>
                         @php
                         $badgeClass = match($tool->status_alat) {
                             'TERSEDIA' => 'badge-green',
-                            'MAINTENANCE' => 'badge-red',
+                            'MAINTENANCE' => 'badge-yellow',
+                            'RUSAK' => 'badge-red',
                             default => 'badge-gray',
                         };
                         @endphp
                         <span class="badge {{ $badgeClass }}">{{ $tool->status_alat }}</span>
                     </td>
-                    <td>
-                        <div class="action-group" style="justify-content:center">
+                    <td style="white-space: nowrap;">
+                        <div class="action-group" style="justify-content:center; align-items:center; flex-wrap: nowrap;">
                             <a href="{{ route('admin.alat.show', $tool->id_alat) }}" class="btn btn-outline btn-sm" style="padding:6px 8px" title="Detail">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             </a>
                             <a href="{{ route('admin.alat.edit', $tool->id_alat) }}" class="btn btn-outline btn-sm" style="padding:6px 8px" title="Edit">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </a>
-                            <form method="POST" action="{{ route('admin.alat.destroy', $tool->id_alat) }}" style="display:inline" onsubmit="return confirm('Hapus alat {{ $tool->nama_alat }}?')">
+                            <form method="POST" action="{{ route('admin.alat.destroy', $tool->id_alat) }}" style="margin:0; display:flex;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-outline btn-sm" style="padding:6px 8px;color:#EF4444;border-color:#FECACA" title="Hapus">
+                                <button type="submit" class="btn btn-outline btn-sm" style="padding:6px 8px;color:#EF4444;border-color:#FECACA" title="Hapus" data-confirm="Hapus alat {{ $tool->nama_alat }}?">
                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                             </form>
@@ -142,7 +149,7 @@
         </table>
     </div>
     @if ($tools->hasPages())
-    <div class="pagination">{{ $tools->appends(request()->query())->links() }}</div>
+    {{ $tools->appends(request()->query())->links() }}
     @endif
 </div>
 @endsection

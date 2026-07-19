@@ -51,31 +51,38 @@
                     <td style="white-space:nowrap">{{ $b->tgl_pengajuan?->format('d/m/Y') }}</td>
                     <td>
                         @php
-                        $badgeClass = match($b->status) {
-                            'MENUNGGU' => 'badge-yellow',
-                            'DISETUJUI' => 'badge-blue',
-                            'DITOLAK' => 'badge-red',
-                            'DIPINJAM' => 'badge-purple',
-                            'DIKEMBALIKAN' => 'badge-green',
-                            default => 'badge-gray',
-                        };
+                        if ($b->is_overdue) {
+                            $badgeClass = 'badge-red';
+                            $statusLabel = 'Terlambat';
+                        } else {
+                            $badgeClass = match($b->status) {
+                                'MENUNGGU' => 'badge-yellow',
+                                'DISETUJUI' => 'badge-blue',
+                                'DITOLAK' => 'badge-red',
+                                'DIPINJAM' => 'badge-purple',
+                                    'TERLAMBAT' => 'badge-danger',
+                                'DIKEMBALIKAN' => 'badge-green',
+                                default => 'badge-gray',
+                            };
+                            $statusLabel = $b->status;
+                        }
                         @endphp
-                        <span class="badge {{ $badgeClass }}">{{ $b->status }}</span>
+                        <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
                     </td>
                     <td>
                         <div class="action-group" style="justify-content:center">
                             <a href="{{ route('admin.borrowings.show', $b->id_borrowing) }}" class="btn btn-outline btn-sm">Detail</a>
                             @if($b->status === 'MENUNGGU')
-                            <form method="POST" action="{{ route('admin.borrowings.approve', $b->id_borrowing) }}" style="display:inline" onsubmit="return confirmAction('Setujui peminjaman ini?')">
+                            <form method="POST" action="{{ route('admin.borrowings.approve', $b->id_borrowing) }}" style="display:inline">
                                 @csrf
-                                <button class="btn btn-success btn-sm">Setuju</button>
+                                <button class="btn btn-success btn-sm" data-confirm="Setujui peminjaman ini?">Setuju</button>
                             </form>
                             <button class="btn btn-danger btn-sm" onclick="showRejectModal({{ $b->id_borrowing }})">Tolak</button>
                             @endif
                             @if($b->status === 'DISETUJUI')
-                            <form method="POST" action="{{ route('admin.borrowings.approve', $b->id_borrowing) }}" style="display:inline" onsubmit="return confirmAction('Proses peminjaman ini?')">
+                            <form method="POST" action="{{ route('admin.borrowings.approve', $b->id_borrowing) }}" style="display:inline">
                                 @csrf
-                                <button class="btn btn-info btn-sm">Proses</button>
+                                <button class="btn btn-info btn-sm" data-confirm="Proses peminjaman ini?">Proses</button>
                             </form>
                             @endif
                             @if(in_array($b->status, ['DISETUJUI', 'DIPINJAM']))
@@ -93,7 +100,7 @@
         </table>
     </div>
     @if($borrowings->hasPages())
-    <div class="pagination">{{ $borrowings->appends(request()->query())->links() }}</div>
+    {{ $borrowings->appends(request()->query())->links() }}
     @endif
 </div>
 
@@ -121,3 +128,4 @@ function showRejectModal(id) {
 }
 </script>
 @endsection
+

@@ -18,9 +18,6 @@
 @endsection
 
 @section('content')
-@if(session('success'))
-<div class="alert alert-success">{{ session('success') }}</div>
-@endif
 
 <div class="stat-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
     <div class="stat-card">
@@ -91,20 +88,25 @@
                 $kondisiItems = $b->borrowingItems->pluck('kondisi_saat_kembali')->filter();
                 $kondisiLabel = $kondisiItems->isEmpty() ? '-' : ($kondisiItems->contains('Rusak Berat') || $kondisiItems->contains('Rusak Ringan') ? 'Rusak/Kabel Putus' : 'Baik/Lengkap');
                 $kondisiClass = $kondisiLabel === '-' ? 'badge-gray' : ($kondisiLabel === 'Baik/Lengkap' ? 'badge-green' : 'badge-red');
-                $badgeClass = match($st) {
-                    'DIKEMBALIKAN' => 'badge-green',
-                    'TERLAMBAT' => 'badge-red',
-                    'DIPINJAM' => 'badge-purple',
-                    'DISETUJUI' => 'badge-blue',
-                    default => 'badge-gray',
-                };
-                $statusLabel = match($st) {
-                    'DIKEMBALIKAN' => 'Dikembalikan',
-                    'TERLAMBAT' => 'Terlambat',
-                    'DIPINJAM' => 'Dipinjam',
-                    'DISETUJUI' => 'Disetujui',
-                    default => $b->status,
-                };
+                if ($b->is_overdue) {
+                    $badgeClass = 'badge-red';
+                    $statusLabel = 'Terlambat';
+                } else {
+                    $badgeClass = match($st) {
+                        'DIKEMBALIKAN' => 'badge-green',
+                        'DIPINJAM' => 'badge-purple',
+                                    'TERLAMBAT' => 'badge-danger',
+                        'DISETUJUI' => 'badge-blue',
+                        default => 'badge-gray',
+                    };
+                    $statusLabel = match($st) {
+                        'DIKEMBALIKAN' => 'Dikembalikan',
+                        'DIPINJAM' => 'Dipinjam',
+                                    'TERLAMBAT' => 'Terlambat',
+                        'DISETUJUI' => 'Disetujui',
+                        default => $b->status,
+                    };
+                }
                 @endphp
                 <tr>
                     <td style="font-weight:600;color:#1A1A2E">{{ $b->id_borrowing }}</td>
@@ -115,7 +117,7 @@
                     <td><span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span></td>
                     <td style="text-align:center;white-space:nowrap">
                         <div class="action-group" style="justify-content:center;flex-wrap:nowrap">
-                            @if($st === 'DIPINJAM')
+                            @if(in_array($st, ['DIPINJAM', 'TERLAMBAT']))
                             <a href="{{ route('admin.peminjaman.kembali-form', $b->id_borrowing) }}" class="btn btn-sm" style="background:#3B82F6">Catat Pengembalian</a>
                             @endif
                             <a href="{{ route('admin.peminjaman.show', $b->id_borrowing) }}" class="btn btn-sm btn-outline">Detail</a>
@@ -130,11 +132,9 @@
             </tbody>
         </table>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid #E5E7EB">
-        <span style="font-size:12px;color:#6B7280">Menampilkan {{ $borrowings->firstItem() ?? 0 }} dari {{ $borrowings->total() }} entri</span>
-        @if($borrowings->hasPages())
-        <div class="pagination" style="margin-top:0">{{ $borrowings->appends(request()->query())->links() }}</div>
-        @endif
-    </div>
+    @if($borrowings->hasPages())
+    {{ $borrowings->appends(request()->query())->links() }}
+    @endif
 </div>
 @endsection
+

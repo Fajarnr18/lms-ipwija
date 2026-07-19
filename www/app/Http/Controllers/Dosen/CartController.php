@@ -9,6 +9,7 @@ use App\Models\Tool;
 use App\Services\AuditLogService;
 use App\Services\N8NWebhookService;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,15 +20,39 @@ class CartController extends Controller
     public function index(): View
     {
         $cart = session()->get('cart', []);
-        $tools = Tool::whereIn('id_alat', array_keys($cart))->get();
+        $validCart = [];
+        $tools = collect();
+        $changed = false;
+
+        if (!empty($cart)) {
+            $tools = Tool::whereIn('id_alat', array_keys($cart))->get();
+            foreach ($cart as $id => $item) {
+                $tool = $tools->firstWhere('id_alat', $id);
+                if ($tool && $tool->status_alat === 'TERSEDIA' && $tool->stok_tersedia > 0) {
+                    $validCart[$id] = $item;
+                } else {
+                    $changed = true;
+                }
+            }
+        }
+
+        if ($changed) {
+            $cart = $validCart;
+            session()->put('cart', $cart);
+            $tools = Tool::whereIn('id_alat', array_keys($cart))->get();
+        }
+
         return view('dosen.keranjang.index', compact('cart', 'tools'));
     }
 
-    public function tambah(Request $request, int $id_alat): RedirectResponse
+    public function tambah(Request $request, int $id_alat): JsonResponse|RedirectResponse
     {
         $tool = Tool::findOrFail($id_alat);
 
         if ($tool->status_alat !== 'TERSEDIA' || $tool->stok_tersedia < 1) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Alat tidak tersedia.'], 400);
+            }
             return back()->with('error', 'Alat tidak tersedia.');
         }
 
@@ -38,6 +63,9 @@ class CartController extends Controller
         $currentQty = isset($cart[$id_alat]) ? $cart[$id_alat]['jumlah_unit'] : 0;
 
         if (($currentQty + $jumlah) > $tool->stok_tersedia) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => "Stok tersedia hanya {$tool->stok_tersedia}."], 400);
+            }
             return back()->with('error', "Stok tersedia hanya {$tool->stok_tersedia}.");
         }
 
@@ -45,11 +73,22 @@ class CartController extends Controller
             'tool_id' => $tool->id_alat,
             'nama_alat' => $tool->nama_alat,
             'kode_alat' => $tool->kode_alat,
+            'foto_alat' => $tool->foto_alat,
             'jumlah_unit' => $currentQty + $jumlah,
             'stok_tersedia' => $tool->stok_tersedia,
         ];
 
         session()->put('cart', $cart);
+
+        $cartCount = collect(session('cart', []))->sum('jumlah_unit');
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "$jumlah {$tool->nama_alat} ditambahkan ke keranjang.",
+                'cart_count' => $cartCount,
+            ]);
+        }
 
         return redirect()->route('dosen.keranjang.index')->with('success', "$jumlah alat ditambahkan ke keranjang.");
     }
@@ -90,7 +129,7 @@ class CartController extends Controller
         try {
             DB::transaction(function () use ($request, $cart) {
                 $activeCount = Borowing::where('mahasiswa_id', auth()->id())
-                    ->whereIn('status', ['DISETUJUI', 'DIPINJAM'])
+                    ->whereIn('status', ['DISETUJUI', 'DIPINJAM', 'TERLAMBAT'])
                     ->count();
 
                 if ($activeCount > 0) {
@@ -99,8 +138,8 @@ class CartController extends Controller
 
                 foreach ($cart as $item) {
                     $tool = Tool::lockForUpdate()->find($item['tool_id']);
-                    if (!$tool || $tool->stok_tersedia < $item['jumlah_unit']) {
-                        throw new Exception("Stok {$tool?->nama_alat} tidak mencukupi.");
+                    if (!$tool || $tool->status_alat !== 'TERSEDIA' || $tool->stok_tersedia < $item['jumlah_unit']) {
+                        throw new Exception("Alat {$tool?->nama_alat} tidak tersedia atau stok tidak mencukupi.");
                     }
                 }
 
@@ -131,11 +170,7 @@ class CartController extends Controller
 
                 session()->forget('cart');
 
-                N8NWebhookService::send('submitted', [
-                    'borrowingId' => $borowing->id_borrowing,
-                    'userName' => auth()->user()->nama_lengkap,
-                    'email' => auth()->user()->email,
-                ]);
+                N8NWebhookService::sendBorrowingNotification($borowing, 'submitted', 'Pengajuan peminjaman Anda berhasil dikirim dan sedang menunggu persetujuan Admin.');
                 AuditLogService::log('PEMINJAMAN', 'CREATE', $borowing->id_borrowing, null, $borowing->toArray());
             });
 
@@ -146,3 +181,4 @@ class CartController extends Controller
         }
     }
 }
+

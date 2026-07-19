@@ -77,7 +77,7 @@ class ToolController extends Controller
             'deskripsi' => 'required|string',
             'stok_total' => 'required|integer|min:0',
             'stok_tersedia' => 'required|integer|min:0|lte:stok_total',
-            'status_alat' => 'required|in:TERSEDIA,MAINTENANCE',
+            'status_alat' => 'required|in:TERSEDIA,MAINTENANCE,RUSAK',
             'kondisi_fisik' => 'nullable|string|max:50',
             'lokasi' => 'required|string|max:50',
             'foto_alat' => 'nullable|image|mimes:png,jpeg,jpg,webp|max:2048',
@@ -124,7 +124,7 @@ class ToolController extends Controller
             'deskripsi' => 'required|string',
             'stok_total' => 'required|integer|min:0',
             'stok_tersedia' => 'required|integer|min:0|lte:stok_total',
-            'status_alat' => 'required|in:TERSEDIA,MAINTENANCE',
+            'status_alat' => 'required|in:TERSEDIA,MAINTENANCE,RUSAK',
             'kondisi_fisik' => 'nullable|string|max:50',
             'lokasi' => 'required|string|max:50',
             'foto_alat' => 'nullable|image|mimes:png,jpeg,jpg,webp|max:2048',
@@ -172,3 +172,4 @@ class ToolController extends Controller
             ->with('success', 'Alat berhasil dihapus.');
     }
 }
+

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lms_ipwija_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    ports:
+      - "8000:8000"
+      - "5174:5173"
+    depends_on:
+      - db
+    # Run web server
+    command: bash -c "php artisan serve --host=0.0.0.0 --port=8000"
+
+  db:
+    image: mysql:8.0
+    container_name: lms_ipwija_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: db_UAS
+      MYSQL_USER: lms_user
+      MYSQL_PASSWORD: lms_password
+      MYSQL_ROOT_PASSWORD: lms_root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - lms_ipwija_mysql_data:/var/lib/mysql
+      # This will auto-import the db_UAS.sql file when the container is first created
+      - ./db_UAS.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  lms_ipwija_mysql_data:

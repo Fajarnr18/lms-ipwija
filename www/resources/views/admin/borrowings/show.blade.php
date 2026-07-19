@@ -21,16 +21,23 @@
             <div class="label">Status</div>
             <div class="value">
                 @php
-                $badgeClass = match($borowing->status) {
-                    'MENUNGGU' => 'badge-yellow',
-                    'DISETUJUI' => 'badge-blue',
-                    'DITOLAK' => 'badge-red',
-                    'DIPINJAM' => 'badge-purple',
-                    'DIKEMBALIKAN' => 'badge-green',
-                    default => 'badge-gray',
-                };
+                if ($borowing->is_overdue) {
+                    $badgeClass = 'badge-red';
+                    $statusLabel = 'Terlambat';
+                } else {
+                    $badgeClass = match($borowing->status) {
+                        'MENUNGGU' => 'badge-yellow',
+                        'DISETUJUI' => 'badge-blue',
+                        'DITOLAK' => 'badge-red',
+                        'DIPINJAM' => 'badge-purple',
+                                    'TERLAMBAT' => 'badge-danger',
+                        'DIKEMBALIKAN' => 'badge-green',
+                        default => 'badge-gray',
+                    };
+                    $statusLabel = $borowing->status;
+                }
                 @endphp
-                <span class="badge {{ $badgeClass }}">{{ $borowing->status }}</span>
+                <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
             </div>
         </div>
         <div class="detail-item">
@@ -75,9 +82,9 @@
     @if($borowing->status === 'MENUNGGU')
     <hr class="divider">
     <div style="display:flex;gap:8px">
-        <form method="POST" action="{{ route('admin.borrowings.approve', $borowing->id_borrowing) }}" style="display:inline" onsubmit="return confirmAction('Setujui peminjaman ini?')">
+        <form method="POST" action="{{ route('admin.borrowings.approve', $borowing->id_borrowing) }}" style="display:inline">
             @csrf
-            <button class="btn btn-success">Setujui</button>
+            <button class="btn btn-success" data-confirm="Setujui peminjaman ini?">Setujui</button>
         </form>
         <button class="btn btn-danger" onclick="showRejectModal({{ $borowing->id_borrowing }})">Tolak</button>
     </div>
@@ -144,3 +151,4 @@ function showRejectModal(id) {
 }
 </script>
 @endsection
+

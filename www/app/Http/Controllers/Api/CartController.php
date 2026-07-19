@@ -18,10 +18,11 @@ class CartController extends Controller
     {
         $cart = session('cart', []);
         $tools = [];
+        $changed = false;
 
         foreach ($cart as $id => $item) {
             $tool = Tool::find($id);
-            if ($tool) {
+            if ($tool && $tool->status_alat === 'TERSEDIA' && $tool->stok_tersedia > 0) {
                 $tools[] = [
                     'id_alat' => $tool->id_alat,
                     'kode_alat' => $tool->kode_alat,
@@ -31,7 +32,14 @@ class CartController extends Controller
                     'foto_alat' => $tool->foto_alat,
                     'jumlah_unit' => $item['jumlah_unit'] ?? 1,
                 ];
+            } else {
+                unset($cart[$id]);
+                $changed = true;
             }
+        }
+
+        if ($changed) {
+            session()->put('cart', $cart);
         }
 
         return response()->json(['data' => $tools, 'total' => count($tools)]);
@@ -123,6 +131,11 @@ class CartController extends Controller
             ]);
 
             foreach ($cart as $id_alat => $item) {
+                $tool = Tool::lockForUpdate()->find($id_alat);
+                if (!$tool || $tool->status_alat !== 'TERSEDIA' || $tool->stok_tersedia < $item['jumlah_unit']) {
+                    throw new \Exception("Alat {$tool?->nama_alat} tidak tersedia atau stok tidak mencukupi.");
+                }
+
                 BorrowingItem::create([
                     'id_borrowing' => $borowing->id_borrowing,
                     'id_alat' => $id_alat,
@@ -136,7 +149,7 @@ class CartController extends Controller
         session()->forget('cart');
 
         AuditLogService::log('PEMINJAMAN', 'CREATE', $borowing->id_borrowing, null, $borowing->toArray());
-        N8NWebhookService::send('submitted', $borowing);
+        N8NWebhookService::sendBorrowingNotification($borowing, 'submitted', 'Pengajuan berhasil disubmit.');
 
         return response()->json(['message' => 'Peminjaman berhasil diajukan.', 'data' => $borowing], 201);
     }
