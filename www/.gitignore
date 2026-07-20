@@ -43,3 +43,4 @@ get_*.php
 create_*.php
 .opencode/
 admin-panel/
+mysql_data/

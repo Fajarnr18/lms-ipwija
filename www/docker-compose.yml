@@ -1,4 +1,4 @@
-version: '3.8'
+name: lms-ipwija
 
 services:
   app:
@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
     # Run web server
-    command: bash -c "php artisan serve --host=0.0.0.0 --port=8000"
+    command: bash -c "php -S 0.0.0.0:8000 server.php"
 
   db:
     image: mysql:8.0
@@ -30,9 +30,6 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - lms_ipwija_mysql_data:/var/lib/mysql
+      - ./mysql_data:/var/lib/mysql
       # This will auto-import the db_UAS.sql file when the container is first created
       - ./db_UAS.sql:/docker-entrypoint-initdb.d/init.sql
-
-volumes:
-  lms_ipwija_mysql_data:
