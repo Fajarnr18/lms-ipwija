@@ -1,0 +1,751 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lms-notification",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        400
+      ],
+      "webhookId": "lms-notification"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "registered",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1. Registrasi Akun"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "user_approved",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "2. Akun Disetujui"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "user_rejected",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "3. Akun Ditolak"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "submitted",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "4. Pengajuan Peminjaman"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "approved",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "5. Peminjaman Disetujui"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "rejected",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "6. Peminjaman Ditolak"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "processed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "7. Peminjaman Diproses"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "returned",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "8. Pengembalian Alat"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "overdue",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "9. Keterlambatan"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Switch Event",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "pesan_teks",
+              "value": "=Halo {{ $json.body.nama }},\n\nRegistrasi Anda berhasil. Saat ini akun Anda sedang menunggu persetujuan Admin."
+            },
+            {
+              "name": "subjek_email",
+              "value": "=Notifikasi LMS: 1. Registrasi Akun"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "1. Registrasi Akun",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "pesan_teks",
+              "value": "=Halo {{ $json.body.nama }},\n\nSelamat! Akun Anda telah disetujui oleh Admin. Anda sekarang dapat login ke sistem LMS."
+            },
+            {
+              "name": "subjek_email",
+              "value": "=Notifikasi LMS: 2. Akun Disetujui"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "2. Akun Disetujui",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "pesan_teks",
+              "value": "=Halo {{ $json.body.nama }},\n\nMohon maaf, pendaftaran akun Anda ditolak dan dihapus oleh Admin."
+            },
+            {
+              "name": "subjek_email",
+              "value": "=Notifikasi LMS: 3. Akun Ditolak"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "3. Akun Ditolak",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "pesan_teks",
+              "value": "=Halo {{ $json.body.nama }},\n\nPengajuan peminjaman alat Anda (ID: {{ $json.body.data.borrowingId }}) berhasil dikirim dan sedang menunggu persetujuan Admin."
+            },
+            {
+              "name": "subjek_email",
+              "value": "=Notifikasi LMS: 4. Pengajuan Peminjaman"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "4. Pengajuan Peminjaman",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "pesan_teks",
+              "value": "=Halo {{ $json.body.nama }},\n\nPengajuan peminjaman alat Anda (ID: {{ $json.body.data.borrowingId }}) telah disetujui. Silakan ambil alat sesuai jadwal."
+            },
+            {
+              "name": "subjek_email",
+              "value": "=Notifikasi LMS: 5. Peminjaman Disetujui"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "5. Peminjaman Disetujui",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "pesan_teks",
+              "value": "=Halo {{ $json.body.nama }},\n\nPengajuan peminjaman alat Anda (ID: {{ $json.body.data.borrowingId }}) ditolak.\nAlasan: {{ $json.body.data.alasanPenolakan }}"
+            },
+            {
+              "name": "subjek_email",
+              "value": "=Notifikasi LMS: 6. Peminjaman Ditolak"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "6. Peminjaman Ditolak",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "pesan_teks",
+              "value": "=Halo {{ $json.body.nama }},\n\n{{ $json.body.data.message }}"
+            },
+            {
+              "name": "subjek_email",
+              "value": "=Notifikasi LMS: 7. Peminjaman Diproses"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "7. Peminjaman Diproses",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "pesan_teks",
+              "value": "=Halo {{ $json.body.nama }},\n\nTerima kasih, alat peminjaman (ID: {{ $json.body.data.borrowingId }}) telah berhasil dikembalikan.\n\nKondisi saat kembali bisa dilihat di sistem."
+            },
+            {
+              "name": "subjek_email",
+              "value": "=Notifikasi LMS: 8. Pengembalian Alat"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "8. Pengembalian Alat",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        840
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "pesan_teks",
+              "value": "=Halo {{ $json.body.nama }},\n\nPERINGATAN! Peminjaman alat Anda (ID: {{ $json.body.data.borrowingId }}) telah melewati batas waktu pengembalian ({{ $json.body.data.tanggalHarusKembali }}). Harap segera mengembalikan alat tersebut."
+            },
+            {
+              "name": "subjek_email",
+              "value": "=Notifikasi LMS: 9. Keterlambatan"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "9. Keterlambatan",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook').item.json.body.jenis_notifikasi }}",
+                    "rightValue": "Whatsapp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Whatsapp"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook').item.json.body.jenis_notifikasi }}",
+                    "rightValue": "Email",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Email"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Switch Notifikasi",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        800,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://waha-api:3000/api/sendText",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chatId: $('Webhook').item.json.body.no_whatsapp.replace(/^0/, '62') + '@c.us', text: $json.pesan_teks, session: 'default' }) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "KUNCIRAHASIAWAHASISTEMINFORMASI2026!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "WAHA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "subject": "={{ $json.subjek_email }}",
+        "message": "={{ $json.pesan_teks.replace(/\\n/g, '<br>') }}",
+        "toList": "={{ $('Webhook').item.json.body.email }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1100,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Event": {
+      "main": [
+        [
+          {
+            "node": "1. Registrasi Akun",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "2. Akun Disetujui",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "3. Akun Ditolak",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "4. Pengajuan Peminjaman",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "5. Peminjaman Disetujui",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "6. Peminjaman Ditolak",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "7. Peminjaman Diproses",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "8. Pengembalian Alat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "9. Keterlambatan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Notifikasi": {
+      "main": [
+        [
+          {
+            "node": "WAHA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Registrasi Akun": {
+      "main": [
+        [
+          {
+            "node": "Switch Notifikasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Akun Disetujui": {
+      "main": [
+        [
+          {
+            "node": "Switch Notifikasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Akun Ditolak": {
+      "main": [
+        [
+          {
+            "node": "Switch Notifikasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Pengajuan Peminjaman": {
+      "main": [
+        [
+          {
+            "node": "Switch Notifikasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Peminjaman Disetujui": {
+      "main": [
+        [
+          {
+            "node": "Switch Notifikasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Peminjaman Ditolak": {
+      "main": [
+        [
+          {
+            "node": "Switch Notifikasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7. Peminjaman Diproses": {
+      "main": [
+        [
+          {
+            "node": "Switch Notifikasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8. Pengembalian Alat": {
+      "main": [
+        [
+          {
+            "node": "Switch Notifikasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9. Keterlambatan": {
+      "main": [
+        [
+          {
+            "node": "Switch Notifikasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
